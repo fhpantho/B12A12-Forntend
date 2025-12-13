@@ -3,6 +3,7 @@ import RootLayout from "../RootLayout/RootLayout";
 import Home from "../pages/Home";
 import EmRegistration from "../authentication/registrations/EmRegistration";
 import HrRegistration from "../authentication/registrations/HrRegistration";
+import Login from "../authentication/login/Login";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ export const router = createBrowserRouter([
       {
         path : "hrregistration",
         Component : HrRegistration
+      },
+      {
+        path : "login",
+        Component : Login
       }
     ]
   },

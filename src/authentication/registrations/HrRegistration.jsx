@@ -1,5 +1,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import UseAuth from "../../hooks/UseAuth";
 
 const HrRegistration = () => {
   const {
@@ -7,14 +8,23 @@ const HrRegistration = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const {registerUser} = UseAuth();
 
   const onSubmit = (data) => {
-    const hrData = {
-      ...data
-    };
-
-    console.log(hrData);
+    registerUser(data.email, data.password)
+    .then(res =>
+    {
+      console.log(res.user)
+    }
+    )
+    .cacth(err => {
+      console.log(err.massage)
+    })
   };
+
+  
+
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
