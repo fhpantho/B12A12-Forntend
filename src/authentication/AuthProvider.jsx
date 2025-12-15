@@ -13,13 +13,16 @@ const AuthProvider = ({children}) => {
     const [loading , setLoading] = useState(true);
 
     const registerUser = (email,password)=> {
+        setLoading(true);
         return createUserWithEmailAndPassword(auth,email, password)
     }
     const singInUser = (email,password) => {
+        setLoading(true);
         return signInWithEmailAndPassword(auth, email, password)
     }
 
     const googleSingIN = ()=> {
+        setLoading(true);
 
         return signInWithPopup(auth, GoogleProvider)
 
@@ -27,6 +30,7 @@ const AuthProvider = ({children}) => {
     }
 
     const logOut = () => {
+        setLoading(true);
         return signOut(auth)
     }
 

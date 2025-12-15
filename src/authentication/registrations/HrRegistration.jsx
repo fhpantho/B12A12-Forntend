@@ -69,10 +69,10 @@ const HrRegistration = () => {
 
             {/* Company Logo */}
             <div>
-              <label className="label">Company Logo URL</label>
+              <label className="label">Company Logo</label>
               <input
-                type="url"
-                className="input input-bordered w-full"
+                type="file"
+                className="input file-input input-bordered w-full "
                 placeholder="ImgBB / Cloudinary URL"
                 {...register("companyLogo", { required: true })}
               />

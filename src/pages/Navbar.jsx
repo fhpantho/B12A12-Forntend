@@ -1,7 +1,12 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router';
+import { Link, NavLink, useNavigate } from 'react-router';
+import UseAuth from '../hooks/UseAuth';
 
 const Navbar = () => {
+
+  const navigate = useNavigate()
+
+  const {user, logOut} = UseAuth()
 
     const Links = <>
 
@@ -31,7 +36,25 @@ const Navbar = () => {
     </ul>
   </div>
   <div className="navbar-end">
-    <Link to = '/login' className="btn">Login</Link>
+
+    {
+      user ?
+      <div className="dropdown dropdown-bottom dropdown-end">
+  <div tabIndex={0} role="button" className="m-1 rounded-[50%] overflow-hidden w-[40px]"><img src={user.photoURL} alt="U" /></div>
+  <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+    <li><a onClick={() => {
+      logOut()
+      .then(res => {
+          navigate("/")
+      })
+    }}>logout</a></li>
+    <li><a>Item 2</a></li>
+  </ul>
+</div> 
+      :
+      <Link to = '/login' className="btn">Login</Link>
+    }
+    
   </div>
 </div>
     );

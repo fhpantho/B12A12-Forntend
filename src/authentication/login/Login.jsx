@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import UseAuth from '../../hooks/UseAuth';
+import GoogleButton from 'react-google-button';
 
 const Login = () => {
       const {
@@ -9,7 +10,7 @@ const Login = () => {
         formState: { errors },
       } = useForm();
 
-      const {singInUser} = UseAuth()
+      const {singInUser, googleSingIN} = UseAuth()
 
       const onSubmit = (data) => {
 
@@ -18,6 +19,12 @@ const Login = () => {
 
         
       }
+
+      const googlesingin = () => {
+    googleSingIN().then((res) => {
+      console.log(res);
+    });
+  };
     return (
             <div className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="card w-full max-w-lg shadow-xl bg-base-100">
@@ -85,6 +92,12 @@ const Login = () => {
             </div>
 
           </form>
+          <span className="text-center">or</span>
+          <div className="w-full flex justify-center">
+            <GoogleButton
+              onClick={googlesingin}
+            />
+          </div>
         </div>
       </div>
     </div>
