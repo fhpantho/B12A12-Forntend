@@ -2,8 +2,13 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import UseAuth from "../../hooks/UseAuth";
 import GoogleButton from "react-google-button";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "react-toastify";
+
 
 const EmRegistration = () => {
+
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -14,10 +19,13 @@ const EmRegistration = () => {
   const onSubmit = (data) => {
     registerUser(data.email, data.password)
       .then((res) => {
-        console.log(res.user);
+        toast.success("Employ Registration Succesfully");
+        navigate("/")
       })
       .cacth((err) => {
-        console.log(err.massage);
+        toast.error("Failed to Register Employ")
+        setLoading(false)
+
       });
   };
 

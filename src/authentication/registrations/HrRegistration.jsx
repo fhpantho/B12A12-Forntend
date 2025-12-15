@@ -4,10 +4,11 @@ import UseAuth from "../../hooks/UseAuth";
 import GoogleButton from "react-google-button";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
+import {useNavigate } from "react-router";
 
 const HrRegistration = () => {
   const navigate = useNavigate();
+
 
   const {
     register,
@@ -61,7 +62,7 @@ const HrRegistration = () => {
     try {
       await googleSingIN();
       toast.success("Google Sign-in successful");
-      navigate("/");
+      navigate("/")
     } catch (error) {
       console.error(error);
       toast.error(error.message);

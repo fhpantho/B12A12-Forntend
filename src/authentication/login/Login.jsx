@@ -1,41 +1,66 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import UseAuth from '../../hooks/UseAuth';
-import GoogleButton from 'react-google-button';
+import React from "react";
+import { useForm } from "react-hook-form";
+import UseAuth from "../../hooks/UseAuth";
+import GoogleButton from "react-google-button";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 const Login = () => {
-      const {
-        register,
-        handleSubmit,
-        formState: { errors },
-      } = useForm();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/";
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-      const {singInUser, googleSingIN} = UseAuth()
+  const { singInUser, googleSingIN, loading, setLoading } = UseAuth();
 
-      const onSubmit = (data) => {
-
-        singInUser(data.email, data.password)
-
-
-        
-      }
-
-      const googlesingin = () => {
-    googleSingIN().then((res) => {
-      console.log(res);
+  const onSubmit = (data) => {
+    singInUser(data.email, data.password)
+    .then(() => {
+      toast.success("User log in Succesfully")
+      navigate(from, { replace: true });
+    })
+    .catch(err => {
+      toast.error("failed to login User");
+      setLoading(false)
     });
   };
-    return (
-            <div className="min-h-screen flex items-center justify-center bg-base-200">
+
+  const googlesingin = () => {
+    googleSingIN().then(() => {
+      toast.success("User log in Succesfully")
+      navigate(from, { replace: true });
+    })
+    .catch(() => {
+      toast.error("Failed to Login with google");
+      setLoading(false)
+    });
+  };
+
+
+  if(loading)
+  {
+    return(
+      <div className="flex flex-col items-center justify-center h-screen">
+        <img
+          src="https://i.gifer.com/XOsX.gif"
+          alt="Loading..."
+          className="w-16 h-16 mb-4"
+        />
+        <p className="text-gray-600 font-medium">loading Information</p>
+      </div>
+    )
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="card w-full max-w-lg shadow-xl bg-base-100">
         <div className="card-body">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Login User
-          </h2>
+          <h2 className="text-2xl font-bold text-center mb-4">Login User</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-
-
             {/* Email */}
             <div>
               <label className="label">Email</label>
@@ -46,9 +71,7 @@ const Login = () => {
                 {...register("email", { required: true })}
               />
               {errors.email && (
-                <span className="text-red-500 text-sm">
-                  Email is required
-                </span>
+                <span className="text-red-500 text-sm">Email is required</span>
               )}
             </div>
 
@@ -83,25 +106,19 @@ const Login = () => {
               )}
             </div>
 
-
             {/* Submit Button */}
             <div className="pt-4">
-              <button className="btn btn-primary w-full">
-                Login
-              </button>
+              <button className="btn btn-primary w-full">Login</button>
             </div>
-
           </form>
           <span className="text-center">or</span>
           <div className="w-full flex justify-center">
-            <GoogleButton
-              onClick={googlesingin}
-            />
+            <GoogleButton onClick={googlesingin} />
           </div>
         </div>
       </div>
     </div>
-    );
+  );
 };
 
 export default Login;
