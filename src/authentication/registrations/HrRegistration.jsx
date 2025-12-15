@@ -1,6 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import UseAuth from "../../hooks/UseAuth";
+import GoogleButton from "react-google-button";
 
 const HrRegistration = () => {
   const {
@@ -8,23 +9,22 @@ const HrRegistration = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const {registerUser} = UseAuth();
+  const { registerUser, googleSingIN } = UseAuth();
 
   const onSubmit = (data) => {
     registerUser(data.email, data.password)
-    .then(res =>
-    {
-      console.log(res.user)
-    }
-    )
-    .cacth(err => {
-      console.log(err.massage)
-    })
+      .then((res) => {
+        console.log(res.user);
+      })
+      .cacth((err) => {
+        console.log(err.massage);
+      });
   };
-
-  
-
-  
+  const googlesingin = () => {
+    googleSingIN().then((res) => {
+      console.log(res);
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -35,7 +35,6 @@ const HrRegistration = () => {
           </h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-
             {/* Full Name */}
             <div>
               <label className="label">Full Name</label>
@@ -94,9 +93,7 @@ const HrRegistration = () => {
                 {...register("email", { required: true })}
               />
               {errors.email && (
-                <span className="text-red-500 text-sm">
-                  Email is required
-                </span>
+                <span className="text-red-500 text-sm">Email is required</span>
               )}
             </div>
 
@@ -148,12 +145,13 @@ const HrRegistration = () => {
 
             {/* Submit Button */}
             <div className="pt-4">
-              <button className="btn btn-primary w-full">
-                Register as HR
-              </button>
+              <button className="btn btn-primary w-full">Register as HR</button>
             </div>
-
           </form>
+          <span className="text-center">or</span>
+          <div className="w-full flex justify-center">
+            <GoogleButton onClick={googlesingin} />
+          </div>
         </div>
       </div>
     </div>

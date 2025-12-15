@@ -9,7 +9,7 @@ const EmRegistration = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { registerUser } = UseAuth();
+  const { registerUser,googleSingIN } = UseAuth();
 
   const onSubmit = (data) => {
     registerUser(data.email, data.password)
@@ -19,6 +19,12 @@ const EmRegistration = () => {
       .cacth((err) => {
         console.log(err.massage);
       });
+  };
+
+  const googlesingin = () => {
+    googleSingIN().then((res) => {
+      console.log(res);
+    });
   };
 
   return (
@@ -117,9 +123,7 @@ const EmRegistration = () => {
           <span className="text-center">or</span>
           <div className="w-full flex justify-center">
             <GoogleButton
-              onClick={() => {
-                
-              }}
+              onClick={googlesingin}
             />
           </div>
         </div>
