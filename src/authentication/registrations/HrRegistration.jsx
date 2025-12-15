@@ -2,29 +2,81 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import UseAuth from "../../hooks/UseAuth";
 import GoogleButton from "react-google-button";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 const HrRegistration = () => {
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { registerUser, googleSingIN } = UseAuth();
 
-  const onSubmit = (data) => {
-    registerUser(data.email, data.password)
-      .then((res) => {
-        console.log(res.user);
-      })
-      .cacth((err) => {
-        console.log(err.massage);
+  const { registerUser, googleSingIN, updateUserInfo, loading } = UseAuth();
+
+  const onSubmit = async (data) => {
+    try {
+      //  get company logo
+      const logoFile = data.companyLogo?.[0];
+      if (!logoFile) {
+        toast.error("Company logo is required");
+        return;
+      }
+
+      
+
+      // upload image
+      const formData = new FormData();
+      formData.append("image", logoFile);
+
+      const imageAPIURL = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_imagehostapikey}`;
+
+      const imgRes = await axios.post(imageAPIURL, formData);
+      const imageURL = imgRes.data.data.url;
+
+      //  create user
+      await registerUser(data.email, data.password);
+
+      // update profile
+      await updateUserInfo({
+        displayName: data.name,
+        photoURL: imageURL,
       });
+
+      //  success
+      toast.success("Register User Successfully");
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message || "Registration failed");
+    }
   };
-  const googlesingin = () => {
-    googleSingIN().then((res) => {
-      console.log(res);
-    });
+
+  const googlesingin = async () => {
+    try {
+      await googleSingIN();
+      toast.success("Google Sign-in successful");
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
   };
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <img
+          src="https://i.gifer.com/ZZ5H.gif"
+          alt="Loading..."
+          className="w-16 h-16 mb-4"
+        />
+        <p className="text-gray-600 font-medium">loading Information</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -72,13 +124,12 @@ const HrRegistration = () => {
               <label className="label">Company Logo</label>
               <input
                 type="file"
-                className="input file-input input-bordered w-full "
-                placeholder="ImgBB / Cloudinary URL"
+                className="file-input file-input-bordered w-full"
                 {...register("companyLogo", { required: true })}
               />
               {errors.companyLogo && (
                 <span className="text-red-500 text-sm">
-                  Company logo URL is required
+                  Company logo is required
                 </span>
               )}
             </div>
@@ -93,7 +144,9 @@ const HrRegistration = () => {
                 {...register("email", { required: true })}
               />
               {errors.email && (
-                <span className="text-red-500 text-sm">Email is required</span>
+                <span className="text-red-500 text-sm">
+                  Email is required
+                </span>
               )}
             </div>
 
@@ -111,19 +164,9 @@ const HrRegistration = () => {
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
                 })}
               />
-              {errors.password?.type === "required" && (
+              {errors.password && (
                 <span className="text-red-500 text-sm">
-                  Password is required
-                </span>
-              )}
-              {errors.password?.type === "minLength" && (
-                <span className="text-red-500 text-sm">
-                  Minimum 6 characters required
-                </span>
-              )}
-              {errors.password?.type === "pattern" && (
-                <span className="text-red-500 text-sm">
-                  Must include uppercase, lowercase, number & special character
+                  Password must be strong
                 </span>
               )}
             </div>
@@ -143,13 +186,14 @@ const HrRegistration = () => {
               )}
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-4">
-              <button className="btn btn-primary w-full">Register as HR</button>
-            </div>
+            <button className="btn btn-primary w-full mt-3">
+              Register as HR
+            </button>
           </form>
-          <span className="text-center">or</span>
-          <div className="w-full flex justify-center">
+
+          <div className="divider">OR</div>
+
+          <div className="flex justify-center">
             <GoogleButton onClick={googlesingin} />
           </div>
         </div>
