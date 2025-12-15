@@ -9,7 +9,7 @@ const EmRegistration = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { registerUser,googleSingIN } = UseAuth();
+  const { registerUser,googleSingIN, loading , setLoading } = UseAuth();
 
   const onSubmit = (data) => {
     registerUser(data.email, data.password)
@@ -26,6 +26,20 @@ const EmRegistration = () => {
       console.log(res);
     });
   };
+
+  if(loading)
+  {
+    return(
+       <div className="flex flex-col items-center justify-center h-screen">
+        <img
+          src="https://i.gifer.com/XOsX.gif"
+          alt="Loading..."
+          className="w-16 h-16 mb-4"
+        />
+        <p className="text-gray-600 font-medium">loading Information</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">

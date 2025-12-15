@@ -15,7 +15,7 @@ const HrRegistration = () => {
     formState: { errors },
   } = useForm();
 
-  const { registerUser, googleSingIN, updateUserInfo, loading } = UseAuth();
+  const { registerUser, googleSingIN, updateUserInfo, loading, setLoading } = UseAuth();
 
   const onSubmit = async (data) => {
     try {
@@ -26,7 +26,8 @@ const HrRegistration = () => {
         return;
       }
 
-      
+       //  create user
+      await registerUser(data.email, data.password);
 
       // upload image
       const formData = new FormData();
@@ -37,8 +38,7 @@ const HrRegistration = () => {
       const imgRes = await axios.post(imageAPIURL, formData);
       const imageURL = imgRes.data.data.url;
 
-      //  create user
-      await registerUser(data.email, data.password);
+     
 
       // update profile
       await updateUserInfo({
@@ -52,6 +52,8 @@ const HrRegistration = () => {
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Registration failed");
+      setLoading(false)
+      navigate("/hrregistration")
     }
   };
 
@@ -69,7 +71,7 @@ const HrRegistration = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <img
-          src="https://i.gifer.com/ZZ5H.gif"
+          src="https://i.gifer.com/XOsX.gif"
           alt="Loading..."
           className="w-16 h-16 mb-4"
         />
@@ -164,9 +166,19 @@ const HrRegistration = () => {
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
                 })}
               />
-              {errors.password && (
+              {errors.password?.type === "required" && (
                 <span className="text-red-500 text-sm">
-                  Password must be strong
+                  Password is required
+                </span>
+              )}
+              {errors.password?.type === "minLength" && (
+                <span className="text-red-500 text-sm">
+                  Minimum 6 characters required
+                </span>
+              )}
+              {errors.password?.type === "pattern" && (
+                <span className="text-red-500 text-sm">
+                  Must include uppercase, lowercase, number & special character
                 </span>
               )}
             </div>
