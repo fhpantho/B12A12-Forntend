@@ -4,6 +4,7 @@ import AboutSection from './AboutSection';
 import PackagesSection from './packages';
 import FeaturesSection from './FeaturesSection'
 import TestimonialsSection from './TestimonialsSection';
+import ExtraSections from './ExtraSections';
 
 
 const Home = () => {
@@ -14,6 +15,7 @@ const Home = () => {
             <PackagesSection></PackagesSection>
             <FeaturesSection></FeaturesSection>
             <TestimonialsSection></TestimonialsSection>
+            <ExtraSections></ExtraSections>
         </div>
     );
 };
