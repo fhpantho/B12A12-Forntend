@@ -4,11 +4,12 @@ import UseAuth from "../../hooks/UseAuth";
 import GoogleButton from "react-google-button";
 import axios from "axios";
 import { toast } from "react-toastify";
-import {useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import UseAxiosSecure from "../../hooks/UseAxiosSecure";
 
 const HrRegistration = () => {
   const navigate = useNavigate();
-
+  const axiosSecure = UseAxiosSecure();
 
   const {
     register,
@@ -19,55 +20,79 @@ const HrRegistration = () => {
   const { registerUser, googleSingIN, updateUserInfo, loading, setLoading } = UseAuth();
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      //  get company logo
+      //  Validate backend first
+      await axiosSecure.post("/user/validate", { email: data.email });
+
+      //  Get company logo
       const logoFile = data.companyLogo?.[0];
-      if (!logoFile) {
-        toast.error("Company logo is required");
-        return;
-      }
+      if (!logoFile) throw new Error("Company logo is required");
 
-       //  create user
-      await registerUser(data.email, data.password);
-
-      // upload image
+      // Upload image
       const formData = new FormData();
       formData.append("image", logoFile);
-
       const imageAPIURL = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_imagehostapikey}`;
-
       const imgRes = await axios.post(imageAPIURL, formData);
-      const imageURL = imgRes.data.data.url;
+      const imageURL = imgRes?.data?.data?.url;
+      if (!imageURL) throw new Error("Image upload failed");
 
-     
+      // Create Firebase user
+      await registerUser(data.email, data.password);
 
-      // update profile
-      await updateUserInfo({
-        displayName: data.name,
-        photoURL: imageURL,
-      });
+      // Update Firebase profile
+      await updateUserInfo({ displayName: data.name, photoURL: imageURL });
 
-      //  success
-      toast.success("Register User Successfully");
+      // Save to backend
+      const userData = {
+        name: data.name,
+        companyName: data.companyName,
+        photo: imageURL,
+        role: "HR",
+        email: data.email,
+        dob: data.dateOfBirth,
+        createdAt: new Date().toISOString(),
+      };
+      await axiosSecure.post("/user", userData);
+
+      toast.success("Registered successfully");
       navigate("/");
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Registration failed");
-      setLoading(false)
-      navigate("/hrregistration")
+      toast.error(error.response?.data?.message || error.message || "Registration failed");
+      navigate("/hrregistration");
+    } finally {
+      setLoading(false);
     }
   };
 
   const googlesingin = async () => {
+    setLoading(true);
     try {
-      await googleSingIN();
+      const result = await googleSingIN();
+      const user = result.user;
+
+      const userData = {
+        name: user.displayName,
+        photo: user.photoURL,
+        role: "HR",
+        email: user.email,
+        createdAt: new Date().toISOString(),
+      };
+
+      await axiosSecure.post("/user", userData);
+
       toast.success("Google Sign-in successful");
-      navigate("/")
+      navigate("/");
     } catch (error) {
       console.error(error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message || "Google sign-in failed");
+      navigate("/hrregistration");
+    } finally {
+      setLoading(false);
     }
   };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -76,21 +101,18 @@ const HrRegistration = () => {
           alt="Loading..."
           className="w-16 h-16 mb-4"
         />
-        <p className="text-gray-600 font-medium">loading Information</p>
+        <p className="text-gray-600 font-medium">Loading information...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 mt-5">
       <div className="card w-full max-w-lg shadow-xl bg-base-100">
         <div className="card-body">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            HR Registration
-          </h2>
+          <h2 className="text-2xl font-bold text-center mb-4">HR Registration</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-            {/* Full Name */}
             <div>
               <label className="label">Full Name</label>
               <input
@@ -99,14 +121,9 @@ const HrRegistration = () => {
                 placeholder="Your full name"
                 {...register("name", { required: true })}
               />
-              {errors.name && (
-                <span className="text-red-500 text-sm">
-                  Full name is required
-                </span>
-              )}
+              {errors.name && <span className="text-red-500">Full name is required</span>}
             </div>
 
-            {/* Company Name */}
             <div>
               <label className="label">Company Name</label>
               <input
@@ -115,14 +132,9 @@ const HrRegistration = () => {
                 placeholder="Company name"
                 {...register("companyName", { required: true })}
               />
-              {errors.companyName && (
-                <span className="text-red-500 text-sm">
-                  Company name is required
-                </span>
-              )}
+              {errors.companyName && <span className="text-red-500">Company name is required</span>}
             </div>
 
-            {/* Company Logo */}
             <div>
               <label className="label">Company Logo</label>
               <input
@@ -130,14 +142,9 @@ const HrRegistration = () => {
                 className="file-input file-input-bordered w-full"
                 {...register("companyLogo", { required: true })}
               />
-              {errors.companyLogo && (
-                <span className="text-red-500 text-sm">
-                  Company logo is required
-                </span>
-              )}
+              {errors.companyLogo && <span className="text-red-500">Company logo is required</span>}
             </div>
 
-            {/* Email */}
             <div>
               <label className="label">Email</label>
               <input
@@ -146,14 +153,9 @@ const HrRegistration = () => {
                 placeholder="email@company.com"
                 {...register("email", { required: true })}
               />
-              {errors.email && (
-                <span className="text-red-500 text-sm">
-                  Email is required
-                </span>
-              )}
+              {errors.email && <span className="text-red-500">Email is required</span>}
             </div>
 
-            {/* Password */}
             <div>
               <label className="label">Password</label>
               <input
@@ -163,28 +165,12 @@ const HrRegistration = () => {
                 {...register("password", {
                   required: true,
                   minLength: 6,
-                  pattern:
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
+                  pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
                 })}
               />
-              {errors.password?.type === "required" && (
-                <span className="text-red-500 text-sm">
-                  Password is required
-                </span>
-              )}
-              {errors.password?.type === "minLength" && (
-                <span className="text-red-500 text-sm">
-                  Minimum 6 characters required
-                </span>
-              )}
-              {errors.password?.type === "pattern" && (
-                <span className="text-red-500 text-sm">
-                  Must include uppercase, lowercase, number & special character
-                </span>
-              )}
+              {errors.password && <span className="text-red-500">Must include uppercase, lowercase, number & special character</span>}
             </div>
 
-            {/* Date of Birth */}
             <div>
               <label className="label">Date of Birth</label>
               <input
@@ -192,16 +178,10 @@ const HrRegistration = () => {
                 className="input input-bordered w-full"
                 {...register("dateOfBirth", { required: true })}
               />
-              {errors.dateOfBirth && (
-                <span className="text-red-500 text-sm">
-                  Date of birth is required
-                </span>
-              )}
+              {errors.dateOfBirth && <span className="text-red-500">Date of birth is required</span>}
             </div>
 
-            <button className="btn btn-primary w-full mt-3">
-              Register as HR
-            </button>
+            <button className="btn btn-primary w-full mt-3">Register as HR</button>
           </form>
 
           <div className="divider">OR</div>

@@ -23,7 +23,7 @@ const Login = () => {
       toast.success("User log in Succesfully")
       navigate(from, { replace: true });
     })
-    .catch(err => {
+    .catch(() => {
       toast.error("failed to login User");
       setLoading(false)
     });

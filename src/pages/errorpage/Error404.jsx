@@ -10,7 +10,7 @@ const Error404 = () => {
           className="w-80%  mb-4"
         />
         <p className="text-gray-600 font-medium">404 Page not Found</p>
-        <h1>lets Go  <NavLink to = "/">Home</NavLink></h1>
+        <h1>lets Go  <NavLink to = "/" className="btn">Home</NavLink></h1>
       </div>
     );
 };
