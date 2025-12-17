@@ -12,7 +12,7 @@ const Navbar = () => {
       <li>
         <NavLink to="/">Home</NavLink>
       </li>
-      {!user && (
+      {!user ? (
         <>
           <li>
             <NavLink to="/emregistration">Join as a Employ</NavLink>
@@ -21,6 +21,11 @@ const Navbar = () => {
             <NavLink to="/hrregistration">Join as a HR Maneger</NavLink>
           </li>
         </>
+      ): (
+        <>
+        <li>
+            <NavLink to="/dashboard">Dashboard</NavLink>
+         </li></>
       )}
     </>
   );

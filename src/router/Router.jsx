@@ -5,6 +5,11 @@ import EmRegistration from "../authentication/registrations/EmRegistration";
 import HrRegistration from "../authentication/registrations/HrRegistration";
 import Login from "../authentication/login/Login";
 import Error404 from "../pages/errorpage/Error404";
+import PrivateRoute from './PrivateRoute';
+import DashboardRedirect from "../pages/DashBoard/DashboardRedirect";
+import HrDashboard from "../pages/DashBoard/HrDashboard";
+import EmployeeDashboard from "../pages/DashBoard/EmployeeDashboard";
+import DashBoardLayout from "../pages/DashBoard/DashBoardLayout";
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +33,30 @@ export const router = createBrowserRouter([
       {
         path : "login",
         Component : Login
-      }
+      },
+      {
+        path: "dashboard",
+        element: (
+          <PrivateRoute>
+            <DashBoardLayout />
+          </PrivateRoute>
+        ),
+        children: [
+          {
+            index: true,
+            Component: DashboardRedirect,
+          },
+          {
+            path: "hr",
+            Component: HrDashboard,
+          },
+          {
+            path: "employee",
+            Component: EmployeeDashboard,
+          },
+        ],
+      },
+
     ]
   },
 ]);
