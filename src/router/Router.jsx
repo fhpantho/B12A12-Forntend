@@ -10,6 +10,7 @@ import DashboardRedirect from "../pages/DashBoard/DashboardRedirect";
 import HrDashboard from "../pages/DashBoard/HrDashboard";
 import EmployeeDashboard from "../pages/DashBoard/EmployeeDashboard";
 import DashBoardLayout from "../pages/DashBoard/DashBoardLayout";
+import UserChecking from "./UserChecking";
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +33,10 @@ export const router = createBrowserRouter([
       },
       {
         path : "login",
-        Component : Login
+        element : 
+        <UserChecking>
+            <Login></Login>
+        </UserChecking>
       },
       {
         path: "dashboard",
