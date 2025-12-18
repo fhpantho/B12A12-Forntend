@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router';
 import UseAuth from '../../hooks/UseAuth';
+
 import {
   HomeIcon,
   PlusCircleIcon,
@@ -14,12 +15,12 @@ const HrDashboard = () => {
   const { dbUser } = UseAuth();
 
   const menuItems = [
-    { to: '/hr-dashboard', label: 'Asset List (Home)', icon: HomeIcon },
-    { to: '/hr-dashboard/add-asset', label: 'Add Asset', icon: PlusCircleIcon },
-    { to: '/hr-dashboard/all-requests', label: 'All Requests', icon: DocumentTextIcon },
-    { to: '/hr-dashboard/my-employees', label: 'My Employee List', icon: UsersIcon },
-    { to: '/hr-dashboard/upgrade', label: 'Upgrade Package', icon: ArrowPathIcon },
-    { to: '/hr-dashboard/profile', label: 'Profile', icon: UserCircleIcon },
+    { to: '/dashboard/hr', label: 'Asset List (Home)', icon: HomeIcon },
+    { to: '/dashboard/hr/addAsset', label: 'Add Asset', icon: PlusCircleIcon },
+    { to: '/dashboard/hr/all-requests', label: 'All Requests', icon: DocumentTextIcon },
+    { to: '/dashboard/hr/my-employees', label: 'My Employee List', icon: UsersIcon },
+    { to: '/dashboard/hr/upgrade', label: 'Upgrade Package', icon: ArrowPathIcon },
+    { to: '/dashboard/hr/profile', label: 'Profile', icon: UserCircleIcon },
   ];
 
   return (
@@ -52,10 +53,11 @@ const HrDashboard = () => {
               <li key={item.to}>
                 <NavLink
                   to={item.to}
+                  end={item.to === '/dashboard/hr'}
                   className={({ isActive }) =>
                     `flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
                       isActive ? 'bg-primary text-white' : 'hover:bg-base-300'
-                    }`
+                    } `
                   }
                 >
                   <item.icon className="w-6 h-6" />

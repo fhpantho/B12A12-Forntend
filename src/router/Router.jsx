@@ -11,6 +11,8 @@ import HrDashboard from "../pages/DashBoard/HrDashboard";
 import EmployeeDashboard from "../pages/DashBoard/EmployeeDashboard";
 import DashBoardLayout from "../pages/DashBoard/DashBoardLayout";
 import UserChecking from "./UserChecking";
+import AssetList from "../pages/DashBoard/HrDashboradComponent/AssetList";
+import AddAsset from "../pages/DashBoard/HrDashboradComponent/AddAsset";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +55,16 @@ export const router = createBrowserRouter([
           {
             path: "hr",
             Component: HrDashboard,
+            children : [
+              {
+                index : true,
+                Component : AssetList,
+              },
+              {
+                path : 'addAsset',
+                Component : AddAsset
+              }
+            ]
           },
           {
             path: "employee",
