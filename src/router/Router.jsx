@@ -13,6 +13,10 @@ import DashBoardLayout from "../pages/DashBoard/DashBoardLayout";
 import UserChecking from "./UserChecking";
 import AssetList from "../pages/DashBoard/HrDashboradComponent/AssetList";
 import AddAsset from "../pages/DashBoard/HrDashboradComponent/AddAsset";
+import RequestAsset from "../pages/DashBoard/EmDashboardComponent/RequestAsset";
+import AllRequests from "../pages/DashBoard/HrDashboradComponent/AllRequests";
+import MyAssets from "../pages/DashBoard/EmDashboardComponent/Myassets";
+import Profile from "../pages/DashBoard/Shared/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -63,12 +67,36 @@ export const router = createBrowserRouter([
               {
                 path : 'addAsset',
                 Component : AddAsset
+              },
+              {
+                path : "all-requests",
+                Component : AllRequests
+              },
+              {
+                path : "profile",
+                Component : Profile
               }
             ]
           },
           {
             path: "employee",
             Component: EmployeeDashboard,
+            children : [
+              {
+                index : true,
+                Component : MyAssets
+
+              },
+              {
+                path : "request-asset",
+                Component : RequestAsset
+              },
+              {
+                path : "profile",
+                Component : Profile
+              }
+              
+            ]
           },
         ],
       },

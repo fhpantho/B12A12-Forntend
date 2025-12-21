@@ -19,6 +19,7 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [dbUser, setDbUser] = useState(null);
   const [dbLoading, setDbLoading] = useState(true);
+    const [myRequests, setMyRequests] = useState([]); 
 
   const axiosSecure = UseAxiosSecure();
 
@@ -53,10 +54,17 @@ const AuthProvider = ({ children }) => {
 };
 
 
-  const updateUserInfo = (profile) => {
-    setLoading(true);
-    return updateProfile(auth.currentUser, profile);
-  };
+const updateUserInfo = async (profile) => {
+  try {
+    await updateProfile(auth.currentUser, profile);
+    //  reload user to get fresh data
+    await auth.currentUser.reload();
+    return auth.currentUser;
+  } catch (error) {
+    console.error("Firebase profile update failed:", error);
+    throw error;
+  }
+};
 
   /* =====================
      FIREBASE AUTH STATE
@@ -112,6 +120,9 @@ const AuthProvider = ({ children }) => {
     setLoading,
     dbUser,
     dbLoading,
+    myRequests,
+    setMyRequests,
+    setDbUser
   };
 
   return (
