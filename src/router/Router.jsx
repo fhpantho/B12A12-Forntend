@@ -17,6 +17,8 @@ import RequestAsset from "../pages/DashBoard/EmDashboardComponent/RequestAsset";
 import AllRequests from "../pages/DashBoard/HrDashboradComponent/AllRequests";
 import MyAssets from "../pages/DashBoard/EmDashboardComponent/Myassets";
 import Profile from "../pages/DashBoard/Shared/Profile";
+import MyEmployeeList from "../pages/DashBoard/HrDashboradComponent/MyEmployeeList";
+import MyTeam from "../pages/DashBoard/EmDashboardComponent/MyTeam";
 
 export const router = createBrowserRouter([
   {
@@ -75,6 +77,10 @@ export const router = createBrowserRouter([
               {
                 path : "profile",
                 Component : Profile
+              },
+              {
+                path : "my-employees",
+                Component : MyEmployeeList
               }
             ]
           },
@@ -94,6 +100,10 @@ export const router = createBrowserRouter([
               {
                 path : "profile",
                 Component : Profile
+              },
+              {
+                path : "my-team",
+                Component : MyTeam
               }
               
             ]

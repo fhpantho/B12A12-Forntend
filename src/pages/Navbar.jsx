@@ -42,13 +42,13 @@ const Navbar = () => {
         <Link to={`${dashboardBase}`}>Asset List</Link>
       </li>
       <li>
-        <Link to={`${dashboardBase}/add-asset`}>Add Asset</Link>
+        <Link to={`${dashboardBase}/addAsset`}>Add Asset</Link>
       </li>
       <li>
         <Link to={`${dashboardBase}/all-requests`}>All Requests</Link>
       </li>
       <li>
-        <Link to={`${dashboardBase}/employee-list`}>Employee List</Link>
+        <Link to={`${dashboardBase}/my-employees`}>Employee List</Link>
       </li>
       <li>
         <Link to={`${dashboardBase}/profile`}>Profile</Link>

@@ -7,6 +7,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 // Import SweetAlert2
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import AnalyticsCharts from "./AnalyticsCharts";
 
 const MySwal = withReactContent(Swal);
 
@@ -130,13 +131,14 @@ const AssetList = () => {
 
   return (
     <div className="p-6">
+      
       <div className="mb-8">
         <h1 className="text-3xl font-bold">My Assets</h1>
         <p className="text-base-content/70 mt-2">
           Manage all assets added to your company
         </p>
       </div>
-
+      <AnalyticsCharts></AnalyticsCharts>
       {/* Search Bar */}
       <div className="mb-6">
         <input
