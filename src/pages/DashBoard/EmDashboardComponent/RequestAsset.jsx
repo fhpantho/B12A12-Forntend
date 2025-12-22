@@ -16,14 +16,17 @@ const RequestAsset = () => {
     hasNext: false,
     hasPrev: false,
   });
+  const [limit, setLimit] = useState(10); // Configurable page size
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [note, setNote] = useState("");
 
-  const fetchAssets = async (page = 1) => {
+  const fetchAssets = async (page = 1, newLimit = limit) => {
     try {
       setLoading(true);
-      const res = await axiosSecure.get(`/assetcollection?page=${page}&limit=10`);
+      const res = await axiosSecure.get(
+        `/assetcollection?page=${page}&limit=${newLimit}`
+      );
       setAssets(res.data.data || []);
       setPagination(res.data.pagination || {});
     } catch (error) {
@@ -34,7 +37,7 @@ const RequestAsset = () => {
   };
 
   useEffect(() => {
-    fetchAssets(1); // Load first page
+    fetchAssets(1, limit);
 
     if (dbUser?.role === "EMPLOYEE" && dbUser?.email) {
       const fetchRequests = async () => {
@@ -50,6 +53,16 @@ const RequestAsset = () => {
       fetchRequests();
     }
   }, [axiosSecure, dbUser, setMyRequests]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    fetchAssets(newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    fetchAssets(1, newLimit); // Reset to page 1
+  };
 
   const getRequestStatus = (assetId) => {
     const request = myRequests.find(
@@ -96,11 +109,6 @@ const RequestAsset = () => {
       const message = err.response?.data?.message || "Failed to submit request";
       toast.error(message);
     }
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > pagination.totalPages) return;
-    fetchAssets(newPage);
   };
 
   if (loading) {
@@ -193,9 +201,25 @@ const RequestAsset = () => {
               })}
             </div>
 
-            {/* Pagination Controls */}
-            {pagination.totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-10">
+            {/* Pagination Controls with Configurable Limit */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mt-10">
+              {/* Page Size Selector */}
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-medium">Show:</span>
+                <select
+                  className="select select-bordered w-32"
+                  value={limit}
+                  onChange={(e) => handleLimitChange(Number(e.target.value))}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-lg">per page</span>
+              </div>
+
+              {/* Pagination Buttons */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={!pagination.hasPrev}
@@ -228,7 +252,12 @@ const RequestAsset = () => {
                   Next
                 </button>
               </div>
-            )}
+
+              {/* Total Items */}
+              <p className="text-lg">
+                Total: <strong>{pagination.totalItems}</strong> assets
+              </p>
+            </div>
           </>
         )}
 
