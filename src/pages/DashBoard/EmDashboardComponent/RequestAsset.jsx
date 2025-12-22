@@ -8,42 +8,49 @@ const RequestAsset = () => {
   const { dbUser, setMyRequests } = UseAuth();
 
   const [assets, setAssets] = useState([]);
-  const [myRequests, setMyRequestsLocal] = useState([]); 
+  const [myRequests, setMyRequestsLocal] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [note, setNote] = useState("");
 
+  const fetchAssets = async (page = 1) => {
+    try {
+      setLoading(true);
+      const res = await axiosSecure.get(`/assetcollection?page=${page}&limit=10`);
+      setAssets(res.data.data || []);
+      setPagination(res.data.pagination || {});
+    } catch (error) {
+      toast.error("Failed to load assets");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      if (!dbUser?.email) {
-        setLoading(false);
-        return;
-      }
+    fetchAssets(1); // Load first page
 
-      try {
-        const assetsRes = await axiosSecure.get("/assetcollection");
-        setAssets(assetsRes.data.data || assetsRes.data || []);
-
-        if (dbUser.role === "EMPLOYEE") {
-          const requestsRes = await axiosSecure.get(
-            `/asset-requests?email=${dbUser.email}`
-          );
-          const requests = requestsRes.data.data || requestsRes.data || [];
+    if (dbUser?.role === "EMPLOYEE" && dbUser?.email) {
+      const fetchRequests = async () => {
+        try {
+          const res = await axiosSecure.get(`/asset-requests?email=${dbUser.email}`);
+          const requests = res.data.data || [];
           setMyRequestsLocal(requests);
           setMyRequests(requests);
+        } catch (err) {
+          console.error(err);
         }
-      } catch (error) {
-        console.error("Failed to load data:", error);
-        toast.error("Failed to load assets or requests");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      };
+      fetchRequests();
+    }
   }, [axiosSecure, dbUser, setMyRequests]);
 
-  /* Get request status — now checks for rejected too */
   const getRequestStatus = (assetId) => {
     const request = myRequests.find(
       (req) => req.assetId.toString() === assetId.toString()
@@ -52,7 +59,6 @@ const RequestAsset = () => {
   };
 
   const HandleSubmit = async (asset) => {
-    // Extra safety: prevent submit if already rejected
     const status = getRequestStatus(asset._id);
     if (status === "rejected") {
       toast.warning("You cannot request this asset again after rejection.");
@@ -87,11 +93,14 @@ const RequestAsset = () => {
       setSelectedAsset(null);
       setNote("");
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        "Failed to submit request. You may have already requested this asset.";
+      const message = err.response?.data?.message || "Failed to submit request";
       toast.error(message);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    fetchAssets(newPage);
   };
 
   if (loading) {
@@ -104,131 +113,149 @@ const RequestAsset = () => {
 
   return (
     <div className="min-h-screen bg-base-200 p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Request an Asset</h1>
-          <p className="text-base-content/70 mt-2">
-            Select an available company asset and submit a request
+          <h1 className="text-4xl font-bold">Request an Asset</h1>
+          <p className="text-xl text-base-content/70 mt-3">
+            Browse available assets and submit a request
           </p>
         </div>
 
         {assets.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-2xl text-base-content/60">No assets available right now</p>
-            <p className="text-base-content/50 mt-2">Check back later or contact HR</p>
+          <div className="text-center py-20 bg-base-100 rounded-2xl">
+            <p className="text-3xl text-base-content/60">No assets available</p>
+            <p className="text-lg text-base-content/50 mt-4">
+              Check back later or contact your HR
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assets.map((asset) => {
-              const status = getRequestStatus(asset._id);
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
+              {assets.map((asset) => {
+                const status = getRequestStatus(asset._id);
 
-              // Determine button style and text
-              let buttonClass = "btn-primary";
-              let buttonText = "Request Asset";
-              let disabled = false;
+                let buttonClass = "btn-primary";
+                let buttonText = "Request Asset";
+                let disabled = false;
 
-              if (status === "pending") {
-                buttonClass = "btn-warning";
-                buttonText = "Pending Approval";
-                disabled = true;
-              } else if (status === "approved") {
-                buttonClass = "btn-success";
-                buttonText = "Approved";
-                disabled = true;
-              } else if (status === "rejected") {
-                buttonClass = "btn-error"; // Red button
-                buttonText = "Rejected";
-                disabled = true;
-              }
+                if (status === "pending") {
+                  buttonClass = "btn-warning";
+                  buttonText = "Pending";
+                  disabled = true;
+                } else if (status === "approved") {
+                  buttonClass = "btn-success";
+                  buttonText = "Approved";
+                  disabled = true;
+                } else if (status === "rejected") {
+                  buttonClass = "btn-error";
+                  buttonText = "Rejected";
+                  disabled = true;
+                }
 
-              return (
-                <div
-                  key={asset._id}
-                  className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
-                >
-                  <figure className="h-48">
-                    <img
-                      src={asset.productImage}
-                      alt={asset.productName}
-                      className="h-full w-full object-cover"
-                    />
-                  </figure>
+                return (
+                  <div
+                    key={asset._id}
+                    className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all"
+                  >
+                    <figure className="h-48">
+                      <img
+                        src={asset.productImage}
+                        alt={asset.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    </figure>
 
-                  <div className="card-body">
-                    <h2 className="card-title">{asset.productName}</h2>
+                    <div className="card-body">
+                      <h2 className="card-title text-lg">{asset.productName}</h2>
 
-                    <div className="text-sm space-y-1">
-                      <p>
-                        <span className="font-semibold">Type:</span>{" "}
-                        <span className="badge badge-sm">{asset.productType}</span>
-                      </p>
-                      <p>
-                        <span className="font-semibold">Available:</span>{" "}
-                        {asset.productQuantity}
-                      </p>
-                    </div>
-
-                    <div className="card-actions justify-end mt-6">
-                      <button
-                        className={`btn btn-md ${buttonClass}`}
-                        onClick={() => setSelectedAsset(asset)}
-                        disabled={disabled}
-                      >
-                        {buttonText}
-                      </button>
-                    </div>
-
-                    {status && (
-                      <div className="mt-3 text-center">
-                        <span
-                          className={`badge badge-sm ${
-                            status === "pending"
-                              ? "badge-warning"
-                              : status === "approved"
-                              ? "badge-success"
-                              : "badge-error"
-                          }`}
-                        >
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
+                      <div className="space-y-2 text-sm">
+                        <p>
+                          <span className="font-medium">Type:</span>{" "}
+                          <span className="badge badge-sm">{asset.productType}</span>
+                        </p>
+                        <p>
+                          <span className="font-medium">Available:</span> {asset.productQuantity}
+                        </p>
                       </div>
-                    )}
+
+                      <div className="card-actions mt-6">
+                        <button
+                          className={`btn w-full ${buttonClass}`}
+                          onClick={() => setSelectedAsset(asset)}
+                          disabled={disabled}
+                        >
+                          {buttonText}
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            {pagination.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-10">
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="btn btn-outline"
+                >
+                  Previous
+                </button>
+
+                <div className="flex gap-1">
+                  {[...Array(pagination.totalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => handlePageChange(i + 1)}
+                      className={`btn btn-sm ${
+                        pagination.currentPage === i + 1
+                          ? "btn-primary"
+                          : "btn-outline"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className="btn btn-outline"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Modal */}
+        {/* Request Modal */}
         {selectedAsset && (
           <dialog open className="modal modal-bottom sm:modal-middle">
             <div className="modal-box">
-              <h3 className="font-bold text-lg mb-4">
+              <h3 className="font-bold text-xl mb-4">
                 Request: {selectedAsset.productName}
               </h3>
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-base-content/70">
-                    Type: <span className="font-medium">{selectedAsset.productType}</span>
-                  </p>
-                  <p className="text-sm text-base-content/70">
-                    Available Quantity:{" "}
-                    <span className="font-medium">{selectedAsset.productQuantity}</span>
-                  </p>
-                </div>
+              <div className="space-y-4 mb-6">
+                <p>
+                  <strong>Type:</strong> {selectedAsset.productType}
+                </p>
+                <p>
+                  <strong>Available:</strong> {selectedAsset.productQuantity}
+                </p>
 
                 <div>
                   <label className="label">
-                    <span className="label-text font-semibold">
-                      Additional Note (Optional)
-                    </span>
+                    <span className="label-text font-medium">Additional Note (Optional)</span>
                   </label>
                   <textarea
                     className="textarea textarea-bordered w-full"
                     rows="4"
-                    placeholder="Write why you need this asset..."
+                    placeholder="Why do you need this asset?"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
@@ -245,10 +272,7 @@ const RequestAsset = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={() => HandleSubmit(selectedAsset)}
-                  className="btn btn-primary"
-                >
+                <button onClick={() => HandleSubmit(selectedAsset)} className="btn btn-primary">
                   Submit Request
                 </button>
               </div>
