@@ -132,13 +132,13 @@ const handleUpdate = async () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-6">
+    <div className="min-h-screen p-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-10">My Profile</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Avatar Section */}
-          <div className="card bg-base-100 shadow-xl p-8 text-center">
+          <div className="card shadow-xl p-8 text-center" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
             <div className="avatar mb-6">
               <div className="w-48 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4">
                 <img
@@ -167,7 +167,7 @@ const handleUpdate = async () => {
           </div>
 
           {/* Form Section */}
-          <div className="lg:col-span-2 card bg-base-100 shadow-xl p-8">
+          <div className="lg:col-span-2 card shadow-xl p-8" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
             <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
 
             <div className="space-y-6">
@@ -210,7 +210,7 @@ const handleUpdate = async () => {
 
               {/* HR Company Info */}
               {dbUser.role === "HR" && (
-                <div className="bg-base-200 p-6 rounded-lg">
+                <div className="p-6 rounded-lg" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
                   <h3 className="font-bold text-xl mb-4">Company Details</h3>
                   <p className="text-lg">
                     <strong>{dbUser.companyName}</strong>
@@ -225,13 +225,14 @@ const handleUpdate = async () => {
 
               {/* Employee Affiliations */}
               {dbUser.role === "EMPLOYEE" && affiliations.length > 0 && (
-                <div className="bg-base-200 p-6 rounded-lg">
+                <div className="p-6 rounded-lg" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
                   <h3 className="font-bold text-xl mb-4">My Companies</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {affiliations.map((aff) => (
                       <div
                         key={aff._id}
-                        className="flex items-center gap-4 bg-base-100 p-4 rounded-lg"
+                        className="flex items-center gap-4 p-4 rounded-lg"
+                        style={{ background: 'var(--background)', color: 'var(--foreground)' }}
                       >
                         <div className="avatar">
                           <div className="w-16 rounded">

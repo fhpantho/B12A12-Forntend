@@ -30,7 +30,7 @@ const features = [
 
 const AboutSection = () => {
   return (
-    <section className="py-20 bg-gray-100">
+    <section className="py-20" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-6xl mx-auto px-4 text-center">
         <motion.h2
           className="text-4xl font-bold mb-8"
@@ -41,7 +41,8 @@ const AboutSection = () => {
           Why Choose AssetVerse?
         </motion.h2>
         <motion.p
-          className="text-lg text-gray-700 mb-12 max-w-3xl mx-auto"
+          className="text-lg mb-12 max-w-3xl mx-auto"
+          style={{ color: 'var(--foreground)' }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -53,14 +54,15 @@ const AboutSection = () => {
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow"
+              className="p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow"
+              style={{ background: 'var(--background)', color: 'var(--foreground)' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 * index }}
             >
               <div className="text-5xl mb-4">{feature.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <p>{feature.description}</p>
             </motion.div>
           ))}
         </div>

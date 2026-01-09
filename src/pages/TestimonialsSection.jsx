@@ -43,7 +43,7 @@ const stats = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-6xl mx-auto px-4 text-center">
         <motion.h2
           className="text-4xl font-bold mb-12"
@@ -59,7 +59,8 @@ const TestimonialsSection = () => {
           {testimonials.map((t, idx) => (
             <motion.div
               key={idx}
-              className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-lg transition-shadow"
+              className="p-6 rounded-xl shadow hover:shadow-lg transition-shadow"
+              style={{ background: 'var(--background)', color: 'var(--foreground)' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 * idx }}
@@ -69,9 +70,9 @@ const TestimonialsSection = () => {
                 alt={t.name}
                 className="w-20 h-20 rounded-full mx-auto mb-4"
               />
-              <p className="text-gray-700 mb-4">"{t.feedback}"</p>
+              <p className="mb-4">"{t.feedback}"</p>
               <h4 className="text-lg font-semibold">{t.name}</h4>
-              <p className="text-sm text-gray-500">{t.company}</p>
+              <p className="text-sm">{t.company}</p>
             </motion.div>
           ))}
         </div>
@@ -81,14 +82,15 @@ const TestimonialsSection = () => {
           {stats.map((s, idx) => (
             <motion.div
               key={idx}
-              className="flex flex-col items-center bg-gray-50 p-6 rounded-xl shadow"
+              className="flex flex-col items-center p-6 rounded-xl shadow"
+              style={{ background: 'var(--background)', color: 'var(--foreground)' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 * idx }}
             >
               {s.icon}
               <h3 className="text-3xl font-bold">{s.value}</h3>
-              <p className="text-gray-600">{s.label}</p>
+              <p>{s.label}</p>
             </motion.div>
           ))}
         </div>

@@ -27,7 +27,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-6xl mx-auto px-4 text-center">
         <motion.h2
           className="text-4xl font-bold mb-8"
@@ -38,7 +38,8 @@ const FeaturesSection = () => {
           Key Features
         </motion.h2>
         <motion.p
-          className="text-gray-600 mb-12 max-w-3xl mx-auto"
+          className="mb-12 max-w-3xl mx-auto"
+          style={{ color: 'var(--foreground)' }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -50,14 +51,15 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow flex flex-col items-center text-center"
+              className="p-6 rounded-xl shadow hover:shadow-lg transition-shadow flex flex-col items-center text-center"
+              style={{ background: 'var(--background)', color: 'var(--foreground)' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 * index }}
             >
               {feature.icon}
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <p>{feature.description}</p>
             </motion.div>
           ))}
         </div>

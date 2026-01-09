@@ -42,7 +42,7 @@ const ExtraSections = () => {
   const [activeFAQ, setActiveFAQ] = useState(null);
 
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="py-20" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-6xl mx-auto px-4 text-center">
 
         {/* How It Works */}
@@ -59,7 +59,8 @@ const ExtraSections = () => {
           {steps.map((step) => (
             <motion.div
               key={step.id}
-              className="bg-white p-8 rounded-xl shadow hover:shadow-lg transition-shadow flex flex-col items-center"
+              className="p-8 rounded-xl shadow hover:shadow-lg transition-shadow flex flex-col items-center"
+              style={{ background: 'var(--background)', color: 'var(--foreground)' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 * step.id }}
@@ -83,7 +84,7 @@ const ExtraSections = () => {
 
         <div className="max-w-3xl mx-auto mb-16">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow mb-4 overflow-hidden">
+            <div key={idx} className="rounded-xl shadow mb-4 overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
               <button
                 className="w-full flex justify-between items-center p-4 text-left"
                 onClick={() => setActiveFAQ(activeFAQ === idx ? null : idx)}
@@ -95,7 +96,8 @@ const ExtraSections = () => {
               </button>
               {activeFAQ === idx && (
                 <motion.div
-                  className="p-4 text-gray-600 border-t border-gray-200"
+                  className="p-4 border-t border-gray-200"
+                  style={{ color: 'var(--foreground)' }}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.3 }}
@@ -110,6 +112,7 @@ const ExtraSections = () => {
         {/* Contact CTA */}
         <motion.div
           className="bg-primary text-white rounded-xl p-10 shadow-lg flex flex-col md:flex-row items-center justify-between"
+          style={{ background: 'var(--background)', color: 'var(--foreground)' }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}

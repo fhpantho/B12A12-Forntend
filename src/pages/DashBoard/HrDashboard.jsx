@@ -25,13 +25,13 @@ const HrDashboard = () => {
   ];
 
   return (
-    <div className="drawer lg:drawer-open min-h-screen bg-base-200">
+    <div className="drawer lg:drawer-open min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <input id="hr-drawer" type="checkbox" className="drawer-toggle" />
 
       {/* Main Content Area */}
-      <div className="drawer-content flex flex-col">
+      <div className="drawer-content flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         {/* Mobile Navbar */}
-        <div className="navbar bg-base-100 shadow-md lg:hidden">
+        <div className="navbar shadow-md lg:hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
           <div className="flex-none">
             <label
               htmlFor="hr-drawer"
@@ -47,7 +47,7 @@ const HrDashboard = () => {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 p-6 lg:p-10">
+        <div className="flex-1 p-6 lg:p-10" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
           <Outlet />
         </div>
       </div>
@@ -60,7 +60,7 @@ const HrDashboard = () => {
           className="drawer-overlay"
         ></label>
 
-        <div className="menu p-4 w-80 min-h-full bg-base-100 text-base-content shadow-xl">
+        <div className="menu p-4 w-80 min-h-full shadow-xl" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
           {/* Company Header */}
           <div className="flex items-center gap-4 mb-8 px-4">
             <div className="avatar">
