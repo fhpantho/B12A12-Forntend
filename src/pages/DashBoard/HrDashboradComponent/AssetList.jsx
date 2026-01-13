@@ -3,8 +3,6 @@ import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-
-// Import SweetAlert2
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import AnalyticsCharts from "./AnalyticsCharts";
@@ -13,7 +11,7 @@ const MySwal = withReactContent(Swal);
 
 const AssetList = () => {
   const axiosSecure = UseAxiosSecure();
-  const { dbUser } = UseAuth();
+  const { dbUser, user } = UseAuth(); // user from Firebase
 
   const [assets, setAssets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,29 +23,33 @@ const AssetList = () => {
     productImage: "",
   });
 
-  useEffect(() => {
-    fetchAssets();
-  }, [axiosSecure, dbUser?.email]);
-
+  // Fetch assets
   const fetchAssets = async (search = "") => {
+    if (!user) return;
     try {
+      const token = await user.getIdToken(true); // get fresh Firebase token
       const res = await axiosSecure.get("/assetcollection", {
         params: { email: dbUser?.email, search },
+        headers: {
+          Authorization: `Bearer ${token}`, // standard header
+        },
       });
       setAssets(res.data.data || []);
     } catch (err) {
       toast.error("Failed to load assets");
-      console.error(err);
+      console.error(err.response?.data || err);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchAssets();
+  }, [user, dbUser?.email]);
+
   // Debounced search
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      fetchAssets(searchTerm);
-    }, 500);
+    const timeout = setTimeout(() => fetchAssets(searchTerm), 500);
     return () => clearTimeout(timeout);
   }, [searchTerm]);
 
@@ -67,12 +69,18 @@ const AssetList = () => {
     }
 
     try {
-      await axiosSecure.patch(`/assetcollection/${editingAsset._id}`, {
-        ...formData,
-        productQuantity: Number(formData.productQuantity),
-        hrEmail: dbUser.email,
-      });
-
+      const token = await user.getIdToken(true);
+      await axiosSecure.patch(
+        `/assetcollection/${editingAsset._id}`,
+        {
+          ...formData,
+          productQuantity: Number(formData.productQuantity),
+          hrEmail: dbUser.email,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("Asset updated successfully!");
       setEditingAsset(null);
       fetchAssets(searchTerm);
@@ -81,43 +89,28 @@ const AssetList = () => {
     }
   };
 
-  // SweetAlert2 Delete Confirmation
   const handleDelete = async (asset) => {
     const result = await MySwal.fire({
       title: "Are you sure?",
-      text: `You are about to delete "${asset.productName}". This action cannot be undone!`,
+      text: `You are about to delete "${asset.productName}".`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel",
-      reverseButtons: true,
     });
 
-    if (!result.isConfirmed) {
-      return; // User canceled
-    }
+    if (!result.isConfirmed) return;
 
     try {
+      const token = await user.getIdToken(true);
       await axiosSecure.delete(`/assetcollection/${asset._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
         data: { hrEmail: dbUser.email },
       });
-
       toast.success("Asset deleted successfully!");
       setAssets((prev) => prev.filter((a) => a._id !== asset._id));
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to delete asset";
-      toast.error(message);
-
-      // Optional: Show detailed message if active requests block deletion
-      if (err.response?.status === 409) {
-        MySwal.fire({
-          title: "Cannot Delete",
-          text: message,
-          icon: "error",
-        });
-      }
+      toast.error(err.response?.data?.message || "Failed to delete asset");
     }
   };
 
@@ -131,26 +124,19 @@ const AssetList = () => {
 
   return (
     <div className="p-6">
-      
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">My Assets</h1>
-        <p className="text-base-content/70 mt-2">
-          Manage all assets added to your company
-        </p>
-      </div>
-      <AnalyticsCharts></AnalyticsCharts>
-      {/* Search Bar */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search by asset name..."
-          className="input input-bordered w-full max-w-md"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      <h1 className="text-3xl font-bold mb-2">My Assets</h1>
+      <p className="text-base-content/70 mb-6">Manage all assets added to your company</p>
 
-      {/* Assets Table */}
+      <AnalyticsCharts />
+
+      <input
+        type="text"
+        placeholder="Search by asset name..."
+        className="input input-bordered w-full max-w-md mb-6"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">
           <thead>
@@ -172,7 +158,7 @@ const AssetList = () => {
               </tr>
             ) : (
               assets.map((asset) => (
-                <tr key={asset._id} className="hover">
+                <tr key={asset._id}>
                   <td>
                     <div className="avatar">
                       <div className="w-16 rounded">
@@ -180,13 +166,11 @@ const AssetList = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="font-medium">{asset.productName}</td>
+                  <td>{asset.productName}</td>
                   <td>
                     <span
                       className={`badge ${
-                        asset.productType === "Returnable"
-                          ? "badge-info"
-                          : "badge-warning"
+                        asset.productType === "Returnable" ? "badge-info" : "badge-warning"
                       }`}
                     >
                       {asset.productType}
@@ -194,23 +178,13 @@ const AssetList = () => {
                   </td>
                   <td>{asset.productQuantity}</td>
                   <td>{new Date(asset.dateAdded).toLocaleDateString()}</td>
-                  <td className="text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(asset)}
-                        className="btn btn-sm btn-ghost text-info"
-                        title="Edit"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(asset)}
-                        className="btn btn-sm btn-ghost text-error"
-                        title="Delete"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
+                  <td className="text-center flex justify-center gap-2">
+                    <button onClick={() => handleEdit(asset)} className="btn btn-sm btn-ghost text-info">
+                      <PencilIcon className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => handleDelete(asset)} className="btn btn-sm btn-ghost text-error">
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
                   </td>
                 </tr>
               ))
@@ -219,62 +193,34 @@ const AssetList = () => {
         </table>
       </div>
 
-      {/* Edit Modal */}
       {editingAsset && (
         <dialog open className="modal modal-bottom sm:modal-middle">
           <div className="modal-box">
             <h3 className="font-bold text-lg mb-4">Edit Asset</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Asset Name</span>
-                </label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  value={formData.productName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, productName: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Quantity</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="input input-bordered w-full"
-                  value={formData.productQuantity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, productQuantity: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Image URL</span>
-                </label>
-                <input
-                  type="url"
-                  className="input input-bordered w-full"
-                  value={formData.productImage}
-                  onChange={(e) =>
-                    setFormData({ ...formData, productImage: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+            <input
+              type="text"
+              className="input input-bordered w-full mb-2"
+              value={formData.productName}
+              onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+            />
+            <input
+              type="number"
+              className="input input-bordered w-full mb-2"
+              value={formData.productQuantity}
+              onChange={(e) => setFormData({ ...formData, productQuantity: e.target.value })}
+            />
+            <input
+              type="url"
+              className="input input-bordered w-full mb-2"
+              value={formData.productImage}
+              onChange={(e) => setFormData({ ...formData, productImage: e.target.value })}
+            />
             <div className="modal-action">
-              <button
-                className="btn btn-ghost"
-                onClick={() => setEditingAsset(null)}
-              >
+              <button className="btn btn-ghost" onClick={() => setEditingAsset(null)}>
                 Cancel
               </button>
               <button className="btn btn-primary" onClick={handleUpdate}>
-                Save Changes
+                Save
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router';
-import Navbar from '../pages/Navbar';
+
 import Footer from '../pages/Footer';
+import Navbar from '../pages/Navbar';
 
 const RootLayout = () => {
     return (
@@ -9,6 +10,8 @@ const RootLayout = () => {
             <header>
                 <Navbar></Navbar>
             </header>
+            {/* Spacer for sticky navbar */}
+            <div style={{ height: '72px' }}></div>
             <main>
                 <Outlet></Outlet>
             </main>

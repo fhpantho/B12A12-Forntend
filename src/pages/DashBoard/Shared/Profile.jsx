@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 const Profile = () => {
   const axiosSecure = UseAxiosSecure();
-  const { dbUser, setDbUser, user, updateUserInfo } = UseAuth(); 
+  const { dbUser, setDbUser, user, updateUserInfo } = UseAuth();
 
   const [name, setName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -14,6 +14,7 @@ const Profile = () => {
   const [affiliations, setAffiliations] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load user data
   useEffect(() => {
     if (dbUser) {
       setName(dbUser.name || "");
@@ -26,17 +27,20 @@ const Profile = () => {
       setProfileImage(currentImage);
       setPreviewImage(currentImage);
 
-      if (dbUser.role === "EMPLOYEE") {
-        fetchAffiliations();
-      }
+      if (dbUser.role === "EMPLOYEE") fetchAffiliations();
       setLoading(false);
     }
   }, [dbUser]);
 
+  // Fetch affiliations for employees
   const fetchAffiliations = async () => {
+    if (!dbUser?.email || !user) return;
+
     try {
+      const token = await user.getIdToken(true);
       const res = await axiosSecure.get(
-        `/employee-affiliations?employeeEmail=${dbUser.email}`
+        `/employee-affiliations?employeeEmail=${dbUser.email}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setAffiliations(res.data.data || []);
     } catch (err) {
@@ -45,6 +49,7 @@ const Profile = () => {
     }
   };
 
+  // Handle profile image upload
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -54,17 +59,14 @@ const Profile = () => {
     reader.onloadend = () => setPreviewImage(reader.result);
     reader.readAsDataURL(file);
 
-    // Upload to the Hoster
+    // Upload to ImgBB
     const formData = new FormData();
     formData.append("image", file);
 
     try {
       const res = await fetch(
         `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_imagehostapikey}`,
-        {
-          method: "POST",
-          body: formData,
-        }
+        { method: "POST", body: formData }
       );
       const data = await res.json();
       if (data.success) {
@@ -74,55 +76,70 @@ const Profile = () => {
         toast.error("Image upload failed");
       }
     } catch (err) {
+      console.error(err);
       toast.error("Upload error");
     }
   };
 
-const handleUpdate = async () => {
-  if (!name.trim()) {
-    toast.error("Name is required");
-    return;
-  }
-
-  try {
-    const updatedData = {
-      name: name.trim(),
-      dateOfBirth: dateOfBirth || null,
-    };
-
-    let newPhotoURL = null;
-    if (profileImage !== (dbUser.photo || dbUser.companyLogo || user?.photoURL || "")) {
-      updatedData.photo = profileImage;
-      newPhotoURL = profileImage;
+  // Handle profile update
+  const handleUpdate = async () => {
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
     }
 
-    // 1. Update MongoDB
-    const response = await axiosSecure.patch(`/user/${dbUser.email}`, updatedData);
-    if (!response.data.success) throw new Error(response.data.message);
+    try {
+      const updatedData = {
+        name: name.trim(),
+        dateOfBirth: dateOfBirth || null,
+      };
 
-    // 2. Update Firebase Auth (only name and photoURL)
-    if (user) {
-      await updateUserInfo({
-        displayName: name.trim(),
-        photoURL: newPhotoURL  
+      let newPhotoURL = null;
+      if (
+        profileImage !== (dbUser.photo || dbUser.companyLogo || user?.photoURL || "")
+      ) {
+        updatedData.photo = profileImage;
+        newPhotoURL = profileImage;
+      }
+
+      // 1. Update MongoDB
+      const token = await user.getIdToken(true);
+      const response = await axiosSecure.patch(
+        `/user/${dbUser.email}`,
+        updatedData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!response.data.success) throw new Error(response.data.message);
+
+      // 2. Update Firebase Auth (name + photo)
+      if (user) {
+        await updateUserInfo({
+          displayName: name.trim(),
+          photoURL: newPhotoURL,
+        });
+      }
+
+      // 3. Update local state
+      setDbUser({
+        ...dbUser,
+        name: updatedData.name,
+        dateOfBirth: updatedData.dateOfBirth
+          ? new Date(updatedData.dateOfBirth)
+          : null,
+        photo:
+          dbUser.role === "EMPLOYEE" ? newPhotoURL || dbUser.photo : dbUser.photo,
+        companyLogo:
+          dbUser.role === "HR" ? newPhotoURL || dbUser.companyLogo : dbUser.companyLogo,
       });
+
+      toast.success("Profile updated successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Failed to update profile");
     }
+  };
 
-    // 3. Update local dbUser state
-    setDbUser({
-      ...dbUser,
-      name: updatedData.name,
-      dateOfBirth: updatedData.dateOfBirth ? new Date(updatedData.dateOfBirth) : null,
-      photo: dbUser.role === "EMPLOYEE" ? (newPhotoURL || dbUser.photo) : dbUser.photo,
-      companyLogo: dbUser.role === "HR" ? (newPhotoURL || dbUser.companyLogo) : dbUser.companyLogo,
-    });
-
-    toast.success("Profile updated successfully!");
-  } catch (err) {
-    console.error(err);
-    toast.error(err.message || "Failed to update profile");
-  }
-};
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -132,32 +149,22 @@ const handleUpdate = async () => {
   }
 
   return (
-    <div className="min-h-screen p-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-10">My Profile</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Avatar Section */}
-          <div className="card shadow-xl p-8 text-center" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+          {/* Avatar */}
+          <div className="card shadow-xl p-8 text-center">
             <div className="avatar mb-6">
               <div className="w-48 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4">
-                <img
-                  src={previewImage || "https://via.placeholder.com/200"}
-                  alt="Profile"
-                />
+                <img src={previewImage || "https://via.placeholder.com/200"} alt="Profile" />
               </div>
             </div>
-
             <label className="btn btn-primary btn-block cursor-pointer">
               Change Photo
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </label>
-
             <div className="mt-6">
               <p className="text-2xl font-bold">{dbUser.name}</p>
               <p className="text-lg text-base-content/60">
@@ -166,10 +173,9 @@ const handleUpdate = async () => {
             </div>
           </div>
 
-          {/* Form Section */}
-          <div className="lg:col-span-2 card shadow-xl p-8" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+          {/* Form */}
+          <div className="lg:col-span-2 card shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
-
             <div className="space-y-6">
               <div>
                 <label className="label">
@@ -210,7 +216,7 @@ const handleUpdate = async () => {
 
               {/* HR Company Info */}
               {dbUser.role === "HR" && (
-                <div className="p-6 rounded-lg" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+                <div className="p-6 rounded-lg">
                   <h3 className="font-bold text-xl mb-4">Company Details</h3>
                   <p className="text-lg">
                     <strong>{dbUser.companyName}</strong>
@@ -225,15 +231,11 @@ const handleUpdate = async () => {
 
               {/* Employee Affiliations */}
               {dbUser.role === "EMPLOYEE" && affiliations.length > 0 && (
-                <div className="p-6 rounded-lg" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+                <div className="p-6 rounded-lg">
                   <h3 className="font-bold text-xl mb-4">My Companies</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {affiliations.map((aff) => (
-                      <div
-                        key={aff._id}
-                        className="flex items-center gap-4 p-4 rounded-lg"
-                        style={{ background: 'var(--background)', color: 'var(--foreground)' }}
-                      >
+                      <div key={aff._id} className="flex items-center gap-4 p-4 rounded-lg">
                         <div className="avatar">
                           <div className="w-16 rounded">
                             <img

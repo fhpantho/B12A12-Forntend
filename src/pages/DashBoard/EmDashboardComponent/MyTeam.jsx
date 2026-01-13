@@ -1,7 +1,14 @@
+// src/components/employee/MyTeam.jsx
 import React, { useEffect, useState } from "react";
 import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
+
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center min-h-screen">
+    <span className="loading loading-spinner loading-lg"></span>
+  </div>
+);
 
 const MyTeam = () => {
   const axiosSecure = UseAxiosSecure();
@@ -13,25 +20,26 @@ const MyTeam = () => {
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch employee's affiliations
+  // Fetch employee's company affiliations
   useEffect(() => {
     const fetchAffiliations = async () => {
       if (!dbUser?.email) return;
       try {
-        const res = await axiosSecure.get(`/employee-affiliations?employeeEmail=${dbUser.email}`);
-        const data = res.data.data || [];
+        const res = await axiosSecure.get(
+          `/employee-affiliations?employeeEmail=${dbUser.email}`
+        );
+        const data = res.data?.data || [];
         setAffiliations(data);
-        if (data.length > 0) {
-          setSelectedCompany(data[0].companyName);
-        }
+        if (data.length > 0) setSelectedCompany(data[0].companyName);
       } catch (err) {
         toast.error("Failed to load companies");
+        console.error(err);
       }
     };
     fetchAffiliations();
-  }, [axiosSecure, dbUser]);
+  }, [axiosSecure, dbUser?.email]);
 
-  // Fetch team when company changes
+  // Fetch team members & upcoming birthdays when selected company changes
   useEffect(() => {
     const fetchTeam = async () => {
       if (!selectedCompany || !dbUser?.email) {
@@ -44,10 +52,12 @@ const MyTeam = () => {
       try {
         setLoading(true);
         const res = await axiosSecure.get(
-          `/my-team?companyName=${encodeURIComponent(selectedCompany)}&employeeEmail=${dbUser.email}`
+          `/my-team?companyName=${encodeURIComponent(
+            selectedCompany
+          )}&employeeEmail=${dbUser.email}`
         );
 
-        if (res.data.success) {
+        if (res.data?.success) {
           setColleagues(res.data.colleagues || []);
           setUpcomingBirthdays(res.data.upcomingBirthdays || []);
         }
@@ -60,17 +70,11 @@ const MyTeam = () => {
     };
 
     fetchTeam();
-  }, [selectedCompany, axiosSecure, dbUser]);
+  }, [selectedCompany, axiosSecure, dbUser?.email]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
-  if (affiliations.length === 0) {
+  if (!affiliations?.length) {
     return (
       <div className="p-10 text-center">
         <p className="text-2xl text-base-content/60">No company affiliation yet</p>
@@ -81,13 +85,15 @@ const MyTeam = () => {
     );
   }
 
+  const formatDate = (dateStr) =>
+    dateStr ? new Date(dateStr).toLocaleDateString(undefined, { day: "numeric", month: "long" }) : "N/A";
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="mb-10">
         <h1 className="text-4xl font-bold">My Team</h1>
-        <p className="text-xl text-base-content/70 mt-3">
-          Meet your colleagues
-        </p>
+        <p className="text-xl text-base-content/70 mt-3">Meet your colleagues</p>
       </div>
 
       {/* Company Selector */}
@@ -109,7 +115,7 @@ const MyTeam = () => {
       </div>
 
       {/* Upcoming Birthdays */}
-      {upcomingBirthdays.length > 0 && (
+      {upcomingBirthdays?.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
             <span>🎉</span> Upcoming Birthdays This Month
@@ -122,17 +128,15 @@ const MyTeam = () => {
               >
                 <div className="avatar mb-4">
                   <div className="w-20 rounded-full ring ring-pink-400 ring-offset-2 mx-auto">
-                    <img src={emp.photo || "https://i.ibb.co.com/4pDndTF/avatar.png"} alt={emp.name} />
+                    <img
+                      src={emp.photo || "https://i.ibb.co/4pDndTF/avatar.png"}
+                      alt={emp.name || "Employee"}
+                    />
                   </div>
                 </div>
-                <h3 className="font-bold text-lg">{emp.name}</h3>
-                <p className="text-sm text-base-content/70">{emp.email}</p>
-                <p className="mt-3 text-pink-600 font-semibold">
-                  {new Date(emp.dateOfBirth).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </p>
+                <h3 className="font-bold text-lg">{emp.name || "Unnamed"}</h3>
+                <p className="text-sm text-base-content/70 break-all">{emp.email}</p>
+                <p className="mt-3 text-pink-600 font-semibold">{formatDate(emp.dateOfBirth)}</p>
               </div>
             ))}
           </div>
@@ -140,9 +144,11 @@ const MyTeam = () => {
       )}
 
       {/* Colleagues Grid */}
-      <h2 className="text-2xl font-bold mb-6">Team Members ({colleagues.length})</h2>
+      <h2 className="text-2xl font-bold mb-6">
+        Team Members ({colleagues?.length || 0})
+      </h2>
 
-      {colleagues.length === 0 ? (
+      {colleagues?.length === 0 ? (
         <div className="text-center py-16 bg-base-100 rounded-2xl">
           <p className="text-xl text-base-content/60">No colleagues in this company yet</p>
         </div>
@@ -157,19 +163,17 @@ const MyTeam = () => {
                 <div className="avatar mb-4">
                   <div className="w-28 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4">
                     <img
-                      src={emp.photo || "https://i.ibb.co.com/4pDndTF/avatar.png"}
-                      alt={emp.name}
+                      src={emp.photo || "https://i.ibb.co/4pDndTF/avatar.png"}
+                      alt={emp.name || "Employee"}
                       className="object-cover"
                     />
                   </div>
                 </div>
-
-                <h3 className="card-title text-lg">{emp.name}</h3>
+                <h3 className="card-title text-lg">{emp.name || "Unnamed"}</h3>
                 <p className="text-sm text-base-content/70 break-all">{emp.email}</p>
-
                 <div className="mt-4">
                   <p className="text-xs text-base-content/50">
-                    Joined {new Date(emp.joinDate).toLocaleDateString()}
+                    Joined {emp.joinDate ? new Date(emp.joinDate).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
               </div>

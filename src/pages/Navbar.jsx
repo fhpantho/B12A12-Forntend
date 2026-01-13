@@ -91,7 +91,7 @@ const Navbar = () => {
   );
 
   return (
-    <div className="navbar bg-base-100 shadow-md px-4 sticky top-0 z-50" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="navbar bg-base-100 shadow-md px-4 fixed top-0 left-0 w-full z-50" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       {/* Left: Logo */}
       <div className="navbar-start">
         <div className="dropdown">

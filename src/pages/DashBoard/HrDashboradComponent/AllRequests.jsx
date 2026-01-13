@@ -9,7 +9,7 @@ const MySwal = withReactContent(Swal);
 
 const AllRequests = () => {
   const axiosSecure = UseAxiosSecure();
-  const { dbUser } = UseAuth();
+  const { dbUser, user } = UseAuth(); // ✅ get 'user' to access token
 
   const [requests, setRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
@@ -18,10 +18,19 @@ const AllRequests = () => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchRequests = useCallback(async () => {
-    if (!dbUser?.email) return;
+    if (!dbUser?.email || !user) return;
 
     try {
-      const res = await axiosSecure.get(`/asset-requests?email=${dbUser.email}`);
+      // ✅ get fresh Firebase token
+      const token = await user.getIdToken(true);
+
+      // ✅ attach token in Authorization header
+      const res = await axiosSecure.get(`/asset-requests?email=${dbUser.email}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = res.data.data || res.data || [];
       setRequests(data);
       setFilteredRequests(data);
@@ -31,7 +40,7 @@ const AllRequests = () => {
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, dbUser?.email]);
+  }, [axiosSecure, dbUser?.email, user]);
 
   useEffect(() => {
     fetchRequests();
@@ -56,7 +65,7 @@ const AllRequests = () => {
     setFilteredRequests(filtered);
   }, [searchTerm, statusFilter, requests]);
 
-  // APPROVE HANDLER WITH SWEETALERT2 CONFIRMATION
+  // APPROVE HANDLER
   const handleApprove = async (requestId, assetName, employeeName) => {
     const result = await MySwal.fire({
       title: "Approve Asset Request?",
@@ -66,11 +75,6 @@ const AllRequests = () => {
           <p class="font-bold text-lg mt-2">${assetName}</p>
           <p>to</p>
           <p class="font-bold text-lg">${employeeName}</p>
-          <p class="text-sm text-warning mt-4">
-            <strong>Warning:</strong> This will deduct 1 unit from asset quantity.
-            ${requests.find(r => r._id === requestId)?.isNewEmployee ? 
-              "<br><strong>New employee will be affiliated and count toward your package limit.</strong>" : ""}
-          </p>
         </div>
       `,
       icon: "question",
@@ -80,56 +84,53 @@ const AllRequests = () => {
       confirmButtonColor: "#22c55e",
       cancelButtonColor: "#ef4444",
       reverseButtons: true,
-      width: "32em",
     });
 
     if (!result.isConfirmed) return;
 
     try {
+      const token = await user.getIdToken(true);
+
       await axiosSecure.patch(`/asset-request/approve/${requestId}`, {
         hrEmail: dbUser.email,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success(`${assetName} approved and assigned to ${employeeName}!`);
 
-      // Optimistically update status to approved
+      // Optimistic update
       setRequests((prev) =>
         prev.map((req) =>
-          req._id === requestId
-            ? { ...req, requestStatus: "approved" }
-            : req
+          req._id === requestId ? { ...req, requestStatus: "approved" } : req
         )
       );
     } catch (err) {
       const message = err.response?.data?.message || "Failed to approve request";
       toast.error(message);
-
-      // Special handling for employee limit
-      if (err.response?.status === 403 && message.includes("limit reached")) {
-        MySwal.fire({
-          title: "Limit Reached",
-          text: message,
-          icon: "warning",
-          confirmButtonText: "Upgrade Package",
-        });
-      }
     }
   };
 
-  // REJECT HANDLER (already working)
+  // REJECT HANDLER
   const handleReject = async (requestId) => {
     try {
+      const token = await user.getIdToken(true);
+
       await axiosSecure.patch(`/asset-request/reject/${requestId}`, {
         hrEmail: dbUser.email,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success("Request rejected successfully");
 
       setRequests((prev) =>
         prev.map((req) =>
-          req._id === requestId
-            ? { ...req, requestStatus: "rejected" }
-            : req
+          req._id === requestId ? { ...req, requestStatus: "rejected" } : req
         )
       );
     } catch (err) {
@@ -149,12 +150,10 @@ const AllRequests = () => {
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">All Asset Requests</h1>
-        <p className="text-base-content/70 mt-2">
-          Review and manage employee asset requests
-        </p>
+        <p className="text-base-content/70 mt-2">Review and manage employee asset requests</p>
       </div>
 
-      {/* Search & Filter Bar */}
+      {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input
           type="text"
@@ -163,7 +162,6 @@ const AllRequests = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-
         <select
           className="select select-bordered w-full md:w-48"
           value={statusFilter}

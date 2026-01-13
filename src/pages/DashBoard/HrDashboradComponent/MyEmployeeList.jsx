@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
@@ -9,7 +9,7 @@ const MySwal = withReactContent(Swal);
 
 const MyEmployeeList = () => {
   const axiosSecure = UseAxiosSecure();
-  const { dbUser } = UseAuth();
+  const { dbUser, user } = UseAuth(); // ✅ include user to get Firebase token
 
   const [employees, setEmployees] = useState([]);
   const [stats, setStats] = useState({ current: 0, limit: 5 });
@@ -18,16 +18,16 @@ const MyEmployeeList = () => {
   const [selectedAssetId, setSelectedAssetId] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (dbUser?.email) {
-      fetchEmployees();
-    }
-  }, [axiosSecure, dbUser?.email]);
+  const fetchEmployees = useCallback(async () => {
+    if (!dbUser?.email || !user) return;
 
-  const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await axiosSecure.get(`/my-employees?hrEmail=${dbUser.email}`);
+      const token = await user.getIdToken(true); // ✅ get Firebase token
+
+      const res = await axiosSecure.get(`/my-employees?hrEmail=${dbUser.email}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (res.data.success) {
         setEmployees(res.data.employees || []);
@@ -37,36 +37,57 @@ const MyEmployeeList = () => {
         });
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load employees");
       setEmployees([]);
+      toast.error("Failed to load employees");
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [axiosSecure, dbUser?.email, user]);
+
+  useEffect(() => {
+    if (dbUser?.email && user) {
+      fetchEmployees();
+    }
+  }, [fetchEmployees, dbUser?.email, user]);
 
   const fetchAvailableAssets = async () => {
+    if (!dbUser?.email || !user) return;
+
     try {
-      const res = await axiosSecure.get(`/assetcollection?email=${dbUser.email}`);
+      const token = await user.getIdToken(true);
+
+      const res = await axiosSecure.get(`/assetcollection?email=${dbUser.email}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const assets = res.data.data || [];
       setAvailableAssets(assets.filter((a) => a.productQuantity > 0));
     } catch (err) {
       toast.error("Failed to load assets");
+      console.error(err);
     }
   };
 
   const handleDirectAssign = async () => {
-    if (!selectedAssetId) {
-      toast.error("Please select an asset");
+    if (!selectedAssetId || !selectedEmployee || !user) {
+      toast.error("Please select an asset and employee");
       return;
     }
 
     try {
-      await axiosSecure.patch("/direct-assign", {
-        hrEmail: dbUser.email,
-        employeeEmail: selectedEmployee.email,
-        assetId: selectedAssetId,
-      });
+      const token = await user.getIdToken(true);
+
+      await axiosSecure.patch(
+        "/direct-assign",
+        {
+          hrEmail: dbUser.email,
+          employeeEmail: selectedEmployee.email,
+          assetId: selectedAssetId,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       toast.success(`Asset assigned to ${selectedEmployee.name}`);
       setSelectedEmployee(null);
@@ -74,6 +95,7 @@ const MyEmployeeList = () => {
       fetchEmployees(); // Refresh stats
     } catch (err) {
       toast.error(err.response?.data?.message || "Assignment failed");
+      console.error(err);
     }
   };
 
@@ -88,19 +110,23 @@ const MyEmployeeList = () => {
       confirmButtonColor: "#ef4444",
     });
 
-    if (!result.isConfirmed) return;
+    if (!result.isConfirmed || !user) return;
 
     try {
-      await axiosSecure.patch("/remove-employee", {
-        hrEmail: dbUser.email,
-        employeeEmail,
-      });
+      const token = await user.getIdToken(true);
+
+      await axiosSecure.patch(
+        "/remove-employee",
+        { hrEmail: dbUser.email, employeeEmail },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       toast.success(`${employeeName} removed from team`);
       setEmployees((prev) => prev.filter((emp) => emp.email !== employeeEmail));
       setStats((prev) => ({ ...prev, current: prev.current - 1 }));
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to remove employee");
+      console.error(err);
     }
   };
 

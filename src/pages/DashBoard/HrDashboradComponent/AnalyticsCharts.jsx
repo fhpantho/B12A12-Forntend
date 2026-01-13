@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 
 const AnalyticsCharts = () => {
   const axiosSecure = UseAxiosSecure();
-  const { dbUser } = UseAuth();
+  const { dbUser, user } = UseAuth(); // ✅ get user to access Firebase token
 
   const [typeData, setTypeData] = useState([]);
   const [topRequested, setTopRequested] = useState([]);
@@ -26,17 +26,23 @@ const AnalyticsCharts = () => {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!dbUser?.email) return;
+      if (!dbUser?.email || !user) return;
 
       try {
         setLoading(true);
 
+        // ✅ get fresh Firebase token
+        const token = await user.getIdToken(true);
+
         // Fetch asset type distribution
         const typeRes = await axiosSecure.get(
-          `/analytics/asset-types?hrEmail=${dbUser.email}`
+          `/analytics/asset-types?hrEmail=${dbUser.email}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
-        const distribution = typeRes.data.data || { Returnable: 0, "Non-returnable": 0 };
 
+        const distribution = typeRes.data.data || { Returnable: 0, "Non-returnable": 0 };
         setTypeData([
           { name: "Returnable", value: distribution.Returnable },
           { name: "Non-returnable", value: distribution["Non-returnable"] },
@@ -44,7 +50,10 @@ const AnalyticsCharts = () => {
 
         // Fetch top 5 requested assets
         const topRes = await axiosSecure.get(
-          `/analytics/top-requested?hrEmail=${dbUser.email}`
+          `/analytics/top-requested?hrEmail=${dbUser.email}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
         setTopRequested(topRes.data.data || []);
       } catch (err) {
@@ -56,7 +65,7 @@ const AnalyticsCharts = () => {
     };
 
     fetchAnalytics();
-  }, [axiosSecure, dbUser?.email]);
+  }, [axiosSecure, dbUser?.email, user]);
 
   const COLORS = ["#10b981", "#f59e0b"]; // Green for Returnable, Amber for Non-returnable
 

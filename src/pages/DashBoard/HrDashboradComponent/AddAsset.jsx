@@ -6,7 +6,7 @@ import UseAxiosSecure from '../../../hooks/UseAxiosSecure';
 import { toast } from 'react-toastify';
 
 const AddAsset = () => {
-  const { dbUser } = UseAuth();
+  const { dbUser, user } = UseAuth();
   const axiosSecure = UseAxiosSecure();
 
   const {
@@ -30,26 +30,22 @@ const AddAsset = () => {
 
   const IMGBB_API_KEY = import.meta.env.VITE_imagehostapikey;
 
-  /*  IMAGE CHANGE HANDLER  */
+  // Handle image selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  /*  IMG UPLOAD  */
+  // Upload image to ImgBB
   const uploadToImgBB = async (file) => {
     const formData = new FormData();
     formData.append('image', file);
 
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
-      {
-        method: 'POST',
-        body: formData,
-      }
+      { method: 'POST', body: formData }
     );
 
     if (!response.ok) throw new Error('Image upload failed');
@@ -57,21 +53,19 @@ const AddAsset = () => {
     return data.data.url;
   };
 
-  /*  FORM SUBMIT  */
+  // Handle form submission
   const onSubmit = async (data) => {
     setServerError('');
     setSuccess(false);
 
     if (!selectedFile) {
-      setError('image', {
-        type: 'required',
-        message: 'Product image is required',
-      });
+      setError('image', { type: 'required', message: 'Product image is required' });
       return;
     }
 
     try {
       const imageUrl = await uploadToImgBB(selectedFile);
+      const token = await user.getIdToken(true); // ✅ Get fresh Firebase token
 
       const assetData = {
         productName: data.productName,
@@ -82,21 +76,22 @@ const AddAsset = () => {
         companyName: dbUser?.companyName,
       };
 
-      await axiosSecure.post('/assetcollection', assetData);
+      // ✅ Send token in standard Authorization header
+      await axiosSecure.post('/assetcollection', assetData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      toast.success('Add the Asset Successfully');
-
+      toast.success('Asset added successfully');
       reset();
       setSelectedFile(null);
       setPreviewUrl(null);
       setSuccess(true);
-
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       console.error(err);
-      setServerError(
-        err.response?.data?.message || 'Failed to add asset. Please try again.'
-      );
+      setServerError(err.response?.data?.message || 'Failed to add asset. Please try again.');
       toast.error('Failed to add asset. Please try again.');
     }
   };
@@ -104,7 +99,6 @@ const AddAsset = () => {
   return (
     <div className="min-h-screen bg-base-200">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-base-content flex items-center gap-3">
             <PlusIcon className="w-8 h-8 text-primary" />
@@ -131,9 +125,7 @@ const AddAsset = () => {
                 />
                 {errors.productName && (
                   <label className="label">
-                    <span className="label-text-alt text-error">
-                      {errors.productName.message}
-                    </span>
+                    <span className="label-text-alt text-error">{errors.productName.message}</span>
                   </label>
                 )}
               </div>
@@ -143,10 +135,7 @@ const AddAsset = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Product Type</span>
                 </label>
-                <select
-                  className="select select-bordered w-full"
-                  {...register('productType')}
-                >
+                <select className="select select-bordered w-full" {...register('productType')}>
                   <option value="Returnable">Returnable</option>
                   <option value="Non-returnable">Non-returnable</option>
                 </select>
@@ -162,95 +151,47 @@ const AddAsset = () => {
                   min="1"
                   placeholder="e.g., 10"
                   className={`input input-bordered w-full ${errors.quantity ? 'input-error' : ''}`}
-                  {...register('quantity', {
-                    required: 'Quantity is required',
-                    min: { value: 1, message: 'Quantity must be at least 1' },
-                  })}
+                  {...register('quantity', { required: 'Quantity is required', min: { value: 1, message: 'Quantity must be at least 1' } })}
                 />
                 {errors.quantity && (
                   <label className="label">
-                    <span className="label-text-alt text-error">
-                      {errors.quantity.message}
-                    </span>
+                    <span className="label-text-alt text-error">{errors.quantity.message}</span>
                   </label>
                 )}
               </div>
 
-              {/* Image Upload (UI UNCHANGED) */}
+              {/* Image Upload */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Product Image</span>
                 </label>
-
                 <div className="flex flex-col items-center justify-center w-full">
                   {previewUrl ? (
-                    <div className="relative">
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="max-w-sm max-h-96 rounded-lg object-contain shadow-lg"
-                      />
-                    </div>
+                    <img src={previewUrl} alt="Preview" className="max-w-sm max-h-96 rounded-lg object-contain shadow-lg" />
                   ) : (
                     <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-base-300 rounded-lg cursor-pointer bg-base-200 hover:border-primary transition-colors">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <PhotoIcon className="w-16 h-16 text-base-400" />
-                        <p className="mt-4 text-sm text-base-content/70">
-                          Click to upload or drag and drop
-                        </p>
-                        <p className="text-xs text-base-content/50">
-                          PNG, JPG, GIF (hosted on ImgBB)
-                        </p>
+                        <p className="mt-4 text-sm text-base-content/70">Click to upload or drag and drop</p>
+                        <p className="text-xs text-base-content/50">PNG, JPG, GIF (hosted on ImgBB)</p>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageChange}
-                      />
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                     </label>
                   )}
                 </div>
-
-                {errors.image && (
-                  <label className="label mt-2">
-                    <span className="label-text-alt text-error">
-                      {errors.image.message}
-                    </span>
-                  </label>
-                )}
+                {errors.image && <label className="label mt-2"><span className="label-text-alt text-error">{errors.image.message}</span></label>}
               </div>
 
               {/* Server Error */}
-              {serverError && (
-                <div className="alert alert-error shadow-lg">
-                  <ExclamationTriangleIcon className="w-6 h-6" />
-                  <span>{serverError}</span>
-                </div>
-              )}
+              {serverError && <div className="alert alert-error shadow-lg"><ExclamationTriangleIcon className="w-6 h-6" />{serverError}</div>}
 
               {/* Success Message */}
-              {success && (
-                <div className="alert alert-success shadow-lg">
-                  <span>Asset added successfully!</span>
-                </div>
-              )}
+              {success && <div className="alert alert-success shadow-lg">Asset added successfully!</div>}
 
               {/* Submit Button */}
               <div className="card-actions justify-end mt-8">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !selectedFile}
-                  className="btn btn-primary btn-wide text-lg"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="loading loading-spinner"></span>
-                      Adding Asset...
-                    </>
-                  ) : (
-                    'Add Asset'
-                  )}
+                <button type="submit" disabled={isSubmitting || !selectedFile} className="btn btn-primary btn-wide text-lg">
+                  {isSubmitting ? <><span className="loading loading-spinner"></span> Adding Asset...</> : 'Add Asset'}
                 </button>
               </div>
             </form>
