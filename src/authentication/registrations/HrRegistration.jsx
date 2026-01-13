@@ -12,6 +12,7 @@ const HrRegistration = () => {
   const { registerUser, updateUserInfo, loading, setLoading, dbUser } = UseAuth();
 
   const [uploading, setUploading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Password toggle state
 
   const {
     register,
@@ -69,7 +70,6 @@ const HrRegistration = () => {
       await axiosSecure.post("/user", userData);
 
       toast.success("HR registration successful! Welcome to AssetVerse");
-      // No need to navigate — useEffect will catch dbUser change
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || "Registration failed");
     } finally {
@@ -81,7 +81,6 @@ const HrRegistration = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      // Google sign-in logic (you'll add later)
       toast.info("Google Sign-In coming soon!");
     } catch (err) {
       toast.error("Google sign-in failed");
@@ -171,19 +170,27 @@ const HrRegistration = () => {
                 {errors.email && <span className="text-error text-sm mt-1">{errors.email.message}</span>}
               </div>
 
-              <div>
+              {/* Password with toggle */}
+              <div className="relative">
                 <label className="label">
                   <span className="label-text font-semibold">Password</span>
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full pr-12"
                   {...register("password", {
                     required: "Password is required",
                     minLength: { value: 6, message: "Password must be at least 6 characters" },
                   })}
                 />
+                <button
+                  type="button"
+                  className="absolute right-2 top-8 text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
                 {errors.password && <span className="text-error text-sm mt-1">{errors.password.message}</span>}
               </div>
             </div>

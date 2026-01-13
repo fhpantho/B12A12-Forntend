@@ -12,6 +12,7 @@ const EmRegistration = () => {
   const { registerUser, updateUserInfo, loading, setLoading, dbUser } = UseAuth();
 
   const [uploading, setUploading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Password toggle state
 
   const {
     register,
@@ -97,6 +98,7 @@ const EmRegistration = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Name */}
             <div>
               <label className="label">
                 <span className="label-text font-semibold">Full Name</span>
@@ -110,6 +112,7 @@ const EmRegistration = () => {
               {errors.name && <span className="text-error text-sm mt-1">{errors.name.message}</span>}
             </div>
 
+            {/* Profile Photo */}
             <div>
               <label className="label">
                 <span className="label-text font-semibold">Profile Photo</span>
@@ -124,7 +127,9 @@ const EmRegistration = () => {
               {uploading && <span className="text-info text-sm mt-2 block">Uploading photo...</span>}
             </div>
 
+            {/* Email and Password */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Email */}
               <div>
                 <label className="label">
                   <span className="label-text font-semibold">Email</span>
@@ -138,23 +143,34 @@ const EmRegistration = () => {
                 {errors.email && <span className="text-error text-sm mt-1">{errors.email.message}</span>}
               </div>
 
-              <div>
+              {/* Password with toggle */}
+              <div className="relative">
                 <label className="label">
                   <span className="label-text font-semibold">Password</span>
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full pr-12"
                   {...register("password", {
                     required: "Password is required",
                     minLength: { value: 6, message: "Min 6 characters" },
                   })}
                 />
-                {errors.password && <span className="text-error text-sm mt-1">{errors.password.message}</span>}
+                <button
+                  type="button"
+                  className="absolute right-2 top-8 text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+                {errors.password && (
+                  <span className="text-error text-sm mt-1">{errors.password.message}</span>
+                )}
               </div>
             </div>
 
+            {/* Date of Birth */}
             <div>
               <label className="label">
                 <span className="label-text font-semibold">Date of Birth</span>
@@ -167,6 +183,7 @@ const EmRegistration = () => {
               {errors.dateOfBirth && <span className="text-error text-sm mt-1">{errors.dateOfBirth.message}</span>}
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading || uploading}
@@ -183,8 +200,10 @@ const EmRegistration = () => {
             </button>
           </form>
 
+          {/* Divider */}
           <div className="divider my-8">OR</div>
 
+          {/* Google Sign-In */}
           <button
             onClick={() => toast.info("Google Sign-In coming soon!")}
             className="btn btn-outline w-full hover:bg-base-200"

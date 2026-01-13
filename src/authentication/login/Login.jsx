@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import UseAuth from "../../hooks/UseAuth";
 import { useLocation, useNavigate } from "react-router";
@@ -16,43 +16,37 @@ const Login = () => {
 
   const { singInUser, googleSingIN, loading, setLoading } = UseAuth();
 
+  const [showPassword, setShowPassword] = useState(false); // <-- added state
+
   const onSubmit = (data) => {
     singInUser(data.email, data.password)
-    .then(() => {
-      toast.success("User log in Succesfully")
-      navigate(from, { replace: true });
-    })
-    .catch(() => {
-      toast.error("failed to login User");
-      setLoading(false)
-    });
+      .then(() => {
+        toast.success("User log in Successfully");
+        navigate(from, { replace: true });
+      })
+      .catch(() => {
+        toast.error("Failed to login User");
+        setLoading(false);
+      });
   };
 
-  const googlesingin = () => {
-    googleSingIN().then(() => {
-      toast.success("User log in Succesfully")
-      navigate(from, { replace: true });
-    })
-    .catch(() => {
-      toast.error("Failed to Login with google");
-      setLoading(false)
-    });
+  const handleGoogleSignIn = () => {
+    toast.info("Coming soon");
   };
 
-
-  if(loading)
-  {
-    return(
+  if (loading) {
+    return (
       <div className="flex flex-col items-center justify-center h-screen">
         <img
           src="https://i.gifer.com/XOsX.gif"
           alt="Loading..."
           className="w-16 h-16 mb-4"
         />
-        <p className="text-gray-600 font-medium">loading Information</p>
+        <p className="text-gray-600 font-medium">Loading Information</p>
       </div>
-    )
+    );
   }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="card w-full max-w-lg shadow-xl bg-base-100">
@@ -75,11 +69,11 @@ const Login = () => {
             </div>
 
             {/* Password */}
-            <div>
+            <div className="relative">
               <label className="label">Password</label>
               <input
-                type="password"
-                className="input input-bordered w-full"
+                type={showPassword ? "text" : "password"} // <-- toggle
+                className="input input-bordered w-full pr-12"
                 placeholder="Minimum 6 characters"
                 {...register("password", {
                   required: true,
@@ -88,6 +82,13 @@ const Login = () => {
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/,
                 })}
               />
+              <button
+                type="button"
+                className="absolute right-2 top-8 text-gray-500"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
               {errors.password?.type === "required" && (
                 <span className="text-red-500 text-sm">
                   Password is required
@@ -110,18 +111,23 @@ const Login = () => {
               <button className="btn btn-primary w-full">Login</button>
             </div>
           </form>
+
           <div className="flex items-center my-4">
             <div className="flex-grow h-px bg-base-300"></div>
             <span className="mx-3 text-base-content/70">or</span>
             <div className="flex-grow h-px bg-base-300"></div>
           </div>
+
           <button
-            onClick={googlesingin}
-            className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-base-300 rounded-lg bg-white dark:bg-base-200 hover:bg-base-100 transition-all font-semibold shadow-sm"
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-            aria-label="Continue with Google"
+            onClick={handleGoogleSignIn}
+            className="btn btn-outline w-full hover:bg-base-200"
           >
-            <svg width="24" height="24" viewBox="0 0 48 48" className="mr-2" xmlns="http://www.w3.org/2000/svg"><g><path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303C34.73 32.364 29.807 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c2.69 0 5.164.896 7.163 2.393l6.084-6.084C33.527 6.053 28.973 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20c11.045 0 19.799-8.955 19.799-20 0-1.341-.138-2.651-.377-3.917z"/><path fill="#34A853" d="M6.306 14.691l6.571 4.819C14.655 16.104 19.004 13 24 13c2.69 0 5.164.896 7.163 2.393l6.084-6.084C33.527 6.053 28.973 4 24 4c-7.732 0-14.41 4.41-17.694 10.691z"/><path fill="#FBBC05" d="M24 44c5.736 0 10.548-1.89 14.198-5.13l-6.537-5.357C29.807 36 24 36 24 36c-5.807 0-10.73-3.636-11.303-8.083l-6.571 4.819C9.59 39.59 16.268 44 24 44z"/><path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303C34.73 32.364 29.807 36 24 36c-5.807 0-10.73-3.636-11.303-8.083l-6.571 4.819C9.59 39.59 16.268 44 24 44c5.736 0 10.548-1.89 14.198-5.13l-6.537-5.357C29.807 36 24 36 24 36c-5.807 0-10.73-3.636-11.303-8.083l-6.571 4.819C9.59 39.59 16.268 44 24 44c11.045 0 19.799-8.955 19.799-20 0-1.341-.138-2.651-.377-3.917z"/></g></svg>
+            <svg className="w-6 h-6" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.87 0 7.33 1.41 10.05 4.15l7.5-7.5C37.69 2.79 31.29 0 24 0 14.67 0 6.75 5.58 2.66 13.72l8.66 6.73C13.99 13.36 18.58 9.5 24 9.5z"/>
+              <path fill="#34A853" d="M46.08 24.69c0-1.62-.15-3.25-.45-4.84H24v9.17h12.42c-.54 2.88-2.17 5.32-4.61 6.95v5.93h7.46c4.37-4.03 6.89-9.96 6.89-17.21z"/>
+              <path fill="#FBBC05" d="M11.32 20.45C10.84 18.86 10.56 17.19 10.56 15.5s.28-3.36.76-4.95L2.66 3.82C.95 7.73 0 12.05 0 16.5s.95 8.77 2.66 12.68l8.66-6.73z"/>
+              <path fill="#4285F4" d="M24 48c6.48 0 11.91-2.14 15.88-5.79l-7.46-5.93c-2.15 1.44-4.9 2.29-8.42 2.29-5.42 0-10.01-3.86-11.68-9.05l-8.66 6.73C6.75 42.42 14.67 48 24 48z"/>
+            </svg>
             Continue with Google
           </button>
         </div>
