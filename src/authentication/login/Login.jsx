@@ -11,12 +11,12 @@ const Login = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
 
   const { singInUser, googleSingIN, loading, setLoading } = UseAuth();
-
-  const [showPassword, setShowPassword] = useState(false); // <-- added state
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = (data) => {
     singInUser(data.email, data.password)
@@ -32,6 +32,17 @@ const Login = () => {
 
   const handleGoogleSignIn = () => {
     toast.info("Coming soon");
+  };
+
+  // Fill form with demo credentials
+  const fillDemoCredentials = (type) => {
+    if (type === "HR") {
+      setValue("email", "hr@ph.com");
+      setValue("password", "#Hr#fahim13");
+    } else if (type === "EMPLOYEE") {
+      setValue("email", "em@ph.com");
+      setValue("password", "#Em#fahim13");
+    }
   };
 
   if (loading) {
@@ -53,6 +64,24 @@ const Login = () => {
         <div className="card-body">
           <h2 className="text-2xl font-bold text-center mb-4">Login User</h2>
 
+          {/* Demo Buttons */}
+          <div className="flex gap-4 mb-4">
+            <button
+              type="button"
+              onClick={() => fillDemoCredentials("HR")}
+              className="btn btn-sm btn-outline btn-primary flex-1"
+            >
+              Demo HR
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemoCredentials("EMPLOYEE")}
+              className="btn btn-sm btn-outline btn-secondary flex-1"
+            >
+              Demo Employee
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             {/* Email */}
             <div>
@@ -72,7 +101,7 @@ const Login = () => {
             <div className="relative">
               <label className="label">Password</label>
               <input
-                type={showPassword ? "text" : "password"} // <-- toggle
+                type={showPassword ? "text" : "password"}
                 className="input input-bordered w-full pr-12"
                 placeholder="Minimum 6 characters"
                 {...register("password", {
@@ -90,9 +119,7 @@ const Login = () => {
                 {showPassword ? "Hide" : "Show"}
               </button>
               {errors.password?.type === "required" && (
-                <span className="text-red-500 text-sm">
-                  Password is required
-                </span>
+                <span className="text-red-500 text-sm">Password is required</span>
               )}
               {errors.password?.type === "minLength" && (
                 <span className="text-red-500 text-sm">
@@ -123,10 +150,22 @@ const Login = () => {
             className="btn btn-outline w-full hover:bg-base-200"
           >
             <svg className="w-6 h-6" viewBox="0 0 48 48">
-              <path fill="#EA4335" d="M24 9.5c3.87 0 7.33 1.41 10.05 4.15l7.5-7.5C37.69 2.79 31.29 0 24 0 14.67 0 6.75 5.58 2.66 13.72l8.66 6.73C13.99 13.36 18.58 9.5 24 9.5z"/>
-              <path fill="#34A853" d="M46.08 24.69c0-1.62-.15-3.25-.45-4.84H24v9.17h12.42c-.54 2.88-2.17 5.32-4.61 6.95v5.93h7.46c4.37-4.03 6.89-9.96 6.89-17.21z"/>
-              <path fill="#FBBC05" d="M11.32 20.45C10.84 18.86 10.56 17.19 10.56 15.5s.28-3.36.76-4.95L2.66 3.82C.95 7.73 0 12.05 0 16.5s.95 8.77 2.66 12.68l8.66-6.73z"/>
-              <path fill="#4285F4" d="M24 48c6.48 0 11.91-2.14 15.88-5.79l-7.46-5.93c-2.15 1.44-4.9 2.29-8.42 2.29-5.42 0-10.01-3.86-11.68-9.05l-8.66 6.73C6.75 42.42 14.67 48 24 48z"/>
+              <path
+                fill="#EA4335"
+                d="M24 9.5c3.87 0 7.33 1.41 10.05 4.15l7.5-7.5C37.69 2.79 31.29 0 24 0 14.67 0 6.75 5.58 2.66 13.72l8.66 6.73C13.99 13.36 18.58 9.5 24 9.5z"
+              />
+              <path
+                fill="#34A853"
+                d="M46.08 24.69c0-1.62-.15-3.25-.45-4.84H24v9.17h12.42c-.54 2.88-2.17 5.32-4.61 6.95v5.93h7.46c4.37-4.03 6.89-9.96 6.89-17.21z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M11.32 20.45C10.84 18.86 10.56 17.19 10.56 15.5s.28-3.36.76-4.95L2.66 3.82C.95 7.73 0 12.05 0 16.5s.95 8.77 2.66 12.68l8.66-6.73z"
+              />
+              <path
+                fill="#4285F4"
+                d="M24 48c6.48 0 11.91-2.14 15.88-5.79l-7.46-5.93c-2.15 1.44-4.9 2.29-8.42 2.29-5.42 0-10.01-3.86-11.68-9.05l-8.66 6.73C6.75 42.42 14.67 48 24 48z"
+              />
             </svg>
             Continue with Google
           </button>
