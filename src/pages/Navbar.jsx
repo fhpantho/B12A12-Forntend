@@ -83,9 +83,30 @@ const Navbar = () => {
           </li>
         </>
       ) : (
+        <>
         <li>
           <NavLink to="/dashboard">Dashboard</NavLink>
+          
         </li>
+        
+
+        {
+          dbUser?.role === "HR" ? 
+          <>
+          <li><NavLink to="/dashboard/hr/profile">Profile</NavLink></li>
+            <li><NavLink to="/dashboard/hr/all-requests">Asset Request</NavLink></li>
+            <li><NavLink to="/dashboard/hr/my-employees">My Employee</NavLink></li>
+            <li><NavLink to="/dashboard/hr/addAsset">Add Asset</NavLink></li>
+          </> 
+          :
+           <>
+            <li><NavLink to="/dashboard/employee/profile">Profile</NavLink></li>
+            <li><NavLink to="/dashboard/employee/request-asset">Request Asset</NavLink></li>
+            <li><NavLink to="/dashboard/employee/my-team">My Team</NavLink></li>
+            <li><NavLink to="/dashboard/employee/addAsset">Add Asset</NavLink></li>
+           </>
+        }
+        </>
       )}
     </>
   );

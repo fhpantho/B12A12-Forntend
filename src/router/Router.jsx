@@ -1,11 +1,11 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router-dom";
 import RootLayout from "../RootLayout/RootLayout";
 import Home from "../pages/Home";
 import EmRegistration from "../authentication/registrations/EmRegistration";
 import HrRegistration from "../authentication/registrations/HrRegistration";
 import Login from "../authentication/login/Login";
 import Error404 from "../pages/errorpage/Error404";
-import PrivateRoute from './PrivateRoute';
+import PrivateRoute from "./PrivateRoute";
 import DashboardRedirect from "../pages/DashBoard/DashboardRedirect";
 import HrDashboard from "../pages/DashBoard/HrDashboard";
 import EmployeeDashboard from "../pages/DashBoard/EmployeeDashboard";
@@ -19,33 +19,39 @@ import MyAssets from "../pages/DashBoard/EmDashboardComponent/Myassets";
 import Profile from "../pages/DashBoard/Shared/Profile";
 import MyEmployeeList from "../pages/DashBoard/HrDashboradComponent/MyEmployeeList";
 import MyTeam from "../pages/DashBoard/EmDashboardComponent/MyTeam";
+import PackagesSection from "../pages/PackagesSection";
+import Payment from "../components/Payment";
+import Success from "../components/Success";
+import PaymentSuccess from "../components/PaymentSuccess";
+import PaymentCancel from "../components/PaymentCancel";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component : RootLayout,
+    Component: RootLayout,
     errorElement: <Error404></Error404>,
-    children : 
-    [
+    children: [
       {
-        index : true, 
-        Component : Home
+        index: true,
+        Component: Home,
       },
       {
-        path : "emregistration",
-        Component : EmRegistration
+        path: "emregistration",
+        Component: EmRegistration,
       },
       {
-        path : "hrregistration",
-        Component : HrRegistration
+        path: "hrregistration",
+        Component: HrRegistration,
       },
       {
-        path : "login",
-        element : 
-        <UserChecking>
+        path: "login",
+        element: (
+          <UserChecking>
             <Login></Login>
-        </UserChecking>
+          </UserChecking>
+        ),
       },
+      
       {
         path: "dashboard",
         element: (
@@ -61,56 +67,70 @@ export const router = createBrowserRouter([
           {
             path: "hr",
             Component: HrDashboard,
-            children : [
+            children: [
               {
-                index : true,
-                Component : AssetList,
+                index: true,
+                Component: AssetList,
               },
               {
-                path : 'addAsset',
-                Component : AddAsset
+                path: "addAsset",
+                Component: AddAsset,
               },
               {
-                path : "all-requests",
-                Component : AllRequests
+                path: "all-requests",
+                Component: AllRequests,
+              },
+
+              {
+                path: "my-employees",
+                Component: MyEmployeeList,
               },
               {
-                path : "profile",
-                Component : Profile
+                path: "profile",
+                Component: Profile,
               },
               {
-                path : "my-employees",
-                Component : MyEmployeeList
+                path: "upgrade",
+                Component: PackagesSection,
+              },
+              {
+                path: "payment/:id",
+                Component: Payment,
+              },
+              {
+                path: "payment-success",
+                Component: PaymentSuccess,
+              },
+              {
+                path : "payment-cancel",
+                Component : PaymentCancel
               }
-            ]
+            ],
           },
           {
             path: "employee",
             Component: EmployeeDashboard,
-            children : [
+            children: [
               {
-                index : true,
-                Component : MyAssets
-
+                index: true,
+                Component: MyAssets,
               },
               {
-                path : "request-asset",
-                Component : RequestAsset
+                path: "request-asset",
+                Component: RequestAsset,
               },
               {
-                path : "profile",
-                Component : Profile
+                path: "profile",
+                Component: Profile,
               },
               {
-                path : "my-team",
-                Component : MyTeam
-              }
-              
-            ]
+                path: "my-team",
+                Component: MyTeam,
+              },
+            ],
           },
         ],
       },
-
-    ]
+    ],
   },
 ]);

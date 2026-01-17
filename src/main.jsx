@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { ThemeProvider } from "./ThemeContext";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { RouterProvider } from "react-router";
+import { RouterProvider } from "react-router-dom";
 import { router } from "./router/Router";
 import AuthProvider from "./authentication/AuthProvider";
 import { ToastContainer } from "react-toastify";

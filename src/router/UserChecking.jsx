@@ -1,19 +1,18 @@
+import UseAuth from "../hooks/UseAuth";
+import { Navigate } from "react-router-dom";
 
-import UseAuth from '../hooks/UseAuth';
-import { Navigate, useNavigate } from 'react-router';
+const UserChecking = ({ children }) => {
+  const { user, loading } = UseAuth();
 
-const UserChecking = ({children}) => {
+  if (loading) {
+    return <progress className="progress w-56"></progress>;
+  }
 
-    const Navigate = useNavigate()
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
-    const {user} = UseAuth();
-
-    if(user){
-        return Navigate("/")
-    }
-
-    return children
-
+  return children;
 };
 
 export default UserChecking;

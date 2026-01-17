@@ -78,16 +78,22 @@ const HrRegistration = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      toast.info("Google Sign-In coming soon!");
-    } catch (err) {
-      toast.error("Google sign-in failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { googleHrSignIn } = UseAuth();
+
+const handleGoogleSignIn = async () => {
+  try {
+    await googleHrSignIn();
+    toast.success("Signed in as HR successfully!");
+    navigate("/dashboard/hr", { replace: true });
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+      error.message ||
+      "Google HR sign-in failed"
+    );
+  }
+};
+
 
   if (loading) {
     return (

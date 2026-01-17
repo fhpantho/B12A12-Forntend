@@ -9,7 +9,7 @@ import axios from "axios";
 const EmRegistration = () => {
   const navigate = useNavigate();
   const axiosSecure = UseAxiosSecure();
-  const { registerUser, updateUserInfo, loading, setLoading, dbUser } = UseAuth();
+  const { registerUser, updateUserInfo, loading, setLoading, dbUser, googleEmployeeSignIn } = UseAuth();
 
   const [uploading, setUploading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // Password toggle state
@@ -72,6 +72,21 @@ const EmRegistration = () => {
       setUploading(false);
     }
   };
+
+const handleGoogleLogin = async () => {
+  try {
+    await googleEmployeeSignIn();
+    toast.success("Welcome to AssetVerse!");
+    navigate("/dashboard/employee", { replace: true });
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+      error.message ||
+      "Google sign-in failed"
+    );
+  }
+};
+
 
   if (loading) {
     return (
@@ -205,7 +220,7 @@ const EmRegistration = () => {
 
           {/* Google Sign-In */}
           <button
-            onClick={() => toast.info("Google Sign-In coming soon!")}
+            onClick={handleGoogleLogin}
             className="btn btn-outline w-full hover:bg-base-200"
           >
             <svg className="w-6 h-6" viewBox="0 0 48 48">
