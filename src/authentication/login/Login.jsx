@@ -1,49 +1,59 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import UseAuth from "../../hooks/UseAuth";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import UseAxiosSecure from "../../hooks/UseAxiosSecure";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
+  const axiosSecure = UseAxiosSecure();
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  const { singInUser, googleSignIn, refreshDbUser, loading, setLoading } = UseAuth();
 
-  const { singInUser, googleSingIn, loading, setLoading, refreshDbUser, dbUser } = UseAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [showRegisterModal, setShowRegisterModal] = useState(false); // Modal state
-  const [pendingEmail, setPendingEmail] = useState(""); // Email of Google user not in DB
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   // ===============================
-  // Normal Email/Password Login
+  // Email/Password Login
   // ===============================
-  const onSubmit = (data) => {
-    singInUser(data.email, data.password)
-      .then(() => {
-        toast.success("User logged in successfully");
-        navigate(from, { replace: true });
-      })
-      .catch(() => {
-        toast.error("Failed to login user");
-        setLoading(false);
-      });
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      await singInUser(data.email, data.password);
+      toast.success("User logged in successfully!");
+      navigate(from, { replace: true });
+    } catch (error) {
+      toast.error("Failed to login user");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ===============================
-  // Google Login with DB Safety + Modal
+  // Google Login
   // ===============================
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      // 1️⃣ Firebase Google login
-      const firebaseUser = await googleSingIn();
+      const firebaseUser = await googleSignIn(); // must return Firebase user
       const email = firebaseUser.email;
 
-      // 2️⃣ Refresh DB user
-      await refreshDbUser();
+      // 1️⃣ Check if user exists in DB
+      const res = await axiosSecure.get(`/user?email=${email}`);
+      const dbUser = res.data?.[0];
 
-      if (!dbUser || dbUser.email !== email) {
+      if (dbUser) {
+        // ✅ User exists → refresh context and navigate
+        await refreshDbUser();
+        toast.success("Logged in successfully!");
+        if (dbUser.role === "HR") navigate("/dashboard/hr", { replace: true });
+        else if (dbUser.role === "EMPLOYEE") navigate("/dashboard/employee", { replace: true });
+        else navigate("/", { replace: true });
+      } else {
         // ❌ User not in DB → rollback Firebase account
         if (firebaseUser) {
           try {
@@ -53,17 +63,9 @@ const Login = () => {
           }
         }
 
-        // Show modal to choose registration type
         setPendingEmail(email);
         setShowRegisterModal(true);
-        return;
       }
-
-      // ✅ Success → navigate based on role
-      toast.success("Logged in successfully!");
-      if (dbUser.role === "HR") navigate("/dashboard/hr", { replace: true });
-      else if (dbUser.role === "EMPLOYEE") navigate("/dashboard/employee", { replace: true });
-      else navigate("/", { replace: true });
     } catch (error) {
       toast.error(error.message || "Google login failed");
     } finally {
@@ -84,6 +86,9 @@ const Login = () => {
     }
   };
 
+  // ===============================
+  // Loading Spinner
+  // ===============================
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -193,7 +198,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Modal for choosing registration type */}
+      {/* Modal for registration */}
       {showRegisterModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-base-100 p-6 rounded-lg shadow-lg w-96 text-center">

@@ -167,6 +167,16 @@ const googleHrSignIn = async () => {
   }
 };
 
+/* =====================
+   GENERIC GOOGLE SIGN-IN
+===================== */
+const googleSignIn = async () => {
+  const result = await signInWithPopup(auth, googleProvider);
+  return result.user; // return Firebase user only
+};
+
+
+
 
   /* =====================
      FIREBASE AUTH STATE
@@ -213,6 +223,7 @@ const googleHrSignIn = async () => {
     googleHrSignIn,
 
     googleEmployeeSignIn,
+    googleSignIn
   };
 
   return (

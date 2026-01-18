@@ -13,6 +13,7 @@ const Profile = () => {
   const [previewImage, setPreviewImage] = useState("");
   const [affiliations, setAffiliations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false); // 🔹 track upload state
 
   // Load user data
   useEffect(() => {
@@ -35,7 +36,6 @@ const Profile = () => {
   // Fetch affiliations for employees
   const fetchAffiliations = async () => {
     if (!dbUser?.email || !user) return;
-
     try {
       const token = await user.getIdToken(true);
       const res = await axiosSecure.get(
@@ -54,23 +54,25 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Preview
+    // Preview immediately
     const reader = new FileReader();
     reader.onloadend = () => setPreviewImage(reader.result);
     reader.readAsDataURL(file);
 
-    // Upload to ImgBB
-    const formData = new FormData();
-    formData.append("image", file);
-
+    // Start uploading
+    setUploadingImage(true);
     try {
+      const formData = new FormData();
+      formData.append("image", file);
+
       const res = await fetch(
         `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_imagehostapikey}`,
         { method: "POST", body: formData }
       );
+
       const data = await res.json();
       if (data.success) {
-        setProfileImage(data.data.url);
+        setProfileImage(data.data.url); // ✅ set new image URL
         toast.success("Image uploaded successfully!");
       } else {
         toast.error("Image upload failed");
@@ -78,6 +80,8 @@ const Profile = () => {
     } catch (err) {
       console.error(err);
       toast.error("Upload error");
+    } finally {
+      setUploadingImage(false); // 🔹 enable Save button after upload
     }
   };
 
@@ -88,21 +92,18 @@ const Profile = () => {
       return;
     }
 
+    if (uploadingImage) {
+      toast.info("Please wait until the image finishes uploading");
+      return;
+    }
+
     try {
       const updatedData = {
         name: name.trim(),
         dateOfBirth: dateOfBirth || null,
+        photo: profileImage, // always send latest profileImage
       };
 
-      let newPhotoURL = null;
-      if (
-        profileImage !== (dbUser.photo || dbUser.companyLogo || user?.photoURL || "")
-      ) {
-        updatedData.photo = profileImage;
-        newPhotoURL = profileImage;
-      }
-
-      // 1. Update MongoDB
       const token = await user.getIdToken(true);
       const response = await axiosSecure.patch(
         `/user/${dbUser.email}`,
@@ -112,25 +113,23 @@ const Profile = () => {
 
       if (!response.data.success) throw new Error(response.data.message);
 
-      // 2. Update Firebase Auth (name + photo)
+      // Update Firebase Auth
       if (user) {
         await updateUserInfo({
           displayName: name.trim(),
-          photoURL: newPhotoURL,
+          photoURL: profileImage || user.photoURL,
         });
       }
 
-      // 3. Update local state
+      // Update local state
       setDbUser({
         ...dbUser,
         name: updatedData.name,
         dateOfBirth: updatedData.dateOfBirth
           ? new Date(updatedData.dateOfBirth)
           : null,
-        photo:
-          dbUser.role === "EMPLOYEE" ? newPhotoURL || dbUser.photo : dbUser.photo,
-        companyLogo:
-          dbUser.role === "HR" ? newPhotoURL || dbUser.companyLogo : dbUser.companyLogo,
+        photo: dbUser.role === "EMPLOYEE" ? profileImage : dbUser.photo,
+        companyLogo: dbUser.role === "HR" ? profileImage : dbUser.companyLogo,
       });
 
       toast.success("Profile updated successfully!");
@@ -162,8 +161,14 @@ const Profile = () => {
               </div>
             </div>
             <label className="btn btn-primary btn-block cursor-pointer">
-              Change Photo
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              {uploadingImage ? "Uploading..." : "Change Photo"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={uploadingImage} // disable while uploading
+              />
             </label>
             <div className="mt-6">
               <p className="text-2xl font-bold">{dbUser.name}</p>
@@ -257,8 +262,12 @@ const Profile = () => {
               )}
 
               <div className="pt-6">
-                <button onClick={handleUpdate} className="btn btn-primary btn-lg w-full">
-                  Save Changes
+                <button
+                  onClick={handleUpdate}
+                  className="btn btn-primary btn-lg w-full"
+                  disabled={uploadingImage} // disable save while image uploads
+                >
+                  {uploadingImage ? "Uploading image..." : "Save Changes"}
                 </button>
               </div>
             </div>

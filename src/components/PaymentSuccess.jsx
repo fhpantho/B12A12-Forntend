@@ -8,14 +8,17 @@ const PaymentSuccess = () => {
   const sessionID = searchParams.get("session_id");
   const axiosSecure = UseAxiosSecure();
   const navigate = useNavigate();
-  const { refreshDbUser } = UseAuth(); // ✅ USE CONTEXT
+  const { refreshDbUser } = UseAuth();
 
   useEffect(() => {
     if (sessionID) {
       axiosSecure
         .patch(`/payment-success?session_id=${sessionID}`)
         .then(() => {
-          refreshDbUser(); // 🚀 INSTANT UI UPDATE
+          refreshDbUser(); // 
+        })
+        .then(() => {
+            setTimeout(navigate("/dashboard/hr"), 5000)
         })
         .catch((err) => {
           console.error("Payment confirmation failed", err);
