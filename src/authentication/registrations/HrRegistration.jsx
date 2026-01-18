@@ -5,6 +5,7 @@ import UseAxiosSecure from "../../hooks/UseAxiosSecure";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import LoaderSpinner from "../../components/LoaderSpinner";
 
 const HrRegistration = () => {
   const navigate = useNavigate();
@@ -97,12 +98,7 @@ const handleGoogleSignIn = async () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-        <div className="text-center">
-          <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
-          <p className="text-lg font-medium">Creating your HR account...</p>
-        </div>
-      </div>
+      <LoaderSpinner></LoaderSpinner>
     );
   }
 

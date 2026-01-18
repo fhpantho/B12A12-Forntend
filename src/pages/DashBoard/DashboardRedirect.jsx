@@ -1,11 +1,12 @@
 import { Navigate } from "react-router";
 import UseAuth from "../../hooks/UseAuth";
+import LoaderSpinner from "../../components/LoaderSpinner";
 
 const DashboardRedirect = () => {
   const { dbUser, loading , dbLoading} = UseAuth();
 
   if (dbLoading && loading) {
-    return <p>Loading dashboard...</p>;
+    return <LoaderSpinner></LoaderSpinner>
   }
 
   if (!dbUser) {

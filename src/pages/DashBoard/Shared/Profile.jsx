@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
+import LoaderSpinner from "../../../components/LoaderSpinner";
 
 const Profile = () => {
   const axiosSecure = UseAxiosSecure();
@@ -141,9 +142,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
+      <LoaderSpinner></LoaderSpinner>
     );
   }
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import UseAuth from "../hooks/UseAuth";
 import UseAxiosSecure from "../hooks/UseAxiosSecure";
+import LoaderSpinner from "./LoaderSpinner";
 
 const Payment = () => {
   const { id } = useParams();
@@ -51,9 +52,7 @@ const Payment = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
+      <LoaderSpinner></LoaderSpinner>
     );
   }
 

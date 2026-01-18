@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
+import LoaderSpinner from "../../../components/LoaderSpinner";
 
 /* -------------------- Loader -------------------- */
 const LoadingSpinner = () => (
@@ -110,7 +111,7 @@ const RequestAsset = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoaderSpinner></LoaderSpinner>
 
   /* -------------------- UI -------------------- */
   return (

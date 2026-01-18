@@ -15,6 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { toast } from "react-toastify";
+import LoaderSpinner from "../../../components/LoaderSpinner";
 
 const AnalyticsCharts = () => {
   const axiosSecure = UseAxiosSecure();
@@ -71,14 +72,7 @@ const AnalyticsCharts = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        <div className="card bg-base-100 shadow-xl p-8">
-          <div className="skeleton h-80 w-full"></div>
-        </div>
-        <div className="card bg-base-100 shadow-xl p-8">
-          <div className="skeleton h-80 w-full"></div>
-        </div>
-      </div>
+     <LoaderSpinner></LoaderSpinner>
     );
   }
 

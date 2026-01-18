@@ -21,7 +21,6 @@ import MyEmployeeList from "../pages/DashBoard/HrDashboradComponent/MyEmployeeLi
 import MyTeam from "../pages/DashBoard/EmDashboardComponent/MyTeam";
 import PackagesSection from "../pages/PackagesSection";
 import Payment from "../components/Payment";
-import Success from "../components/Success";
 import PaymentSuccess from "../components/PaymentSuccess";
 import PaymentCancel from "../components/PaymentCancel";
 

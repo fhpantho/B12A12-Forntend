@@ -1,12 +1,13 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import UseAuth from "../hooks/UseAuth";
+import LoaderSpinner from "../components/LoaderSpinner";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = UseAuth();
   const location = useLocation();
 
   if (loading) {
-    return <progress className="progress w-56"></progress>;
+    return <LoaderSpinner></LoaderSpinner>;
   }
 
   if (!user) {

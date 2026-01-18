@@ -4,6 +4,7 @@ import UseAxiosSecure from "../hooks/UseAxiosSecure";
 import UseAuth from "../hooks/UseAuth";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import LoaderSpinner from "../components/LoaderSpinner";
 
 const PackagesSection = () => {
   const axiosSecure = UseAxiosSecure();
@@ -38,7 +39,7 @@ const PackagesSection = () => {
   };
 
   if (loading) {
-    return <p className="text-center py-20">Loading packages...</p>;
+    return <LoaderSpinner></LoaderSpinner>;
   }
 
   // 🔑 Find current plan price

@@ -4,6 +4,7 @@ import UseAuth from "../../hooks/UseAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import UseAxiosSecure from "../../hooks/UseAxiosSecure";
+import LoaderSpinner from "../../components/LoaderSpinner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -89,18 +90,7 @@ const Login = () => {
   // ===============================
   // Loading Spinner
   // ===============================
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <img
-          src="https://i.gifer.com/XOsX.gif"
-          alt="Loading..."
-          className="w-16 h-16 mb-4"
-        />
-        <p className="text-gray-600 font-medium">Loading Information</p>
-      </div>
-    );
-  }
+  if(loading) return <LoaderSpinner></LoaderSpinner>
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">

@@ -4,6 +4,7 @@ import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import LoaderSpinner from "../../../components/LoaderSpinner";
 
 const MySwal = withReactContent(Swal);
 
@@ -132,9 +133,7 @@ const MyEmployeeList = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
+      <LoaderSpinner></LoaderSpinner>
     );
   }
 

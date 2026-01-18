@@ -24,13 +24,13 @@ const Footer = () => {
         {/* Contact Details */}
         <div>
           <h3 className="text-xl font-bold mb-4">Contact Us</h3>
-          <p>Email: support@assetverse.com</p>
-          <p>Phone: +880 123 456 789</p>
+          <p>Email: fahim1020pantho@gmail.com</p>
+          <p>WhatsApp: +8801786397788</p>
           <div className="flex space-x-4 mt-4">
-            <a href="#" className="hover:text-primary"><FaFacebookF /></a>
-            <a href="#" className="hover:text-primary"><FaTwitter /></a>
-            <a href="#" className="hover:text-primary"><FaLinkedinIn /></a>
-            <a href="#" className="hover:text-primary"><FaInstagram /></a>
+            <a href="https://www.facebook.com/f.h.pantho" className="hover:text-primary"><FaFacebookF /></a>
+            <a href="https://x.com/FHPantho" className="hover:text-primary"><FaTwitter /></a>
+            <a href="https://www.linkedin.com/in/fhpantho" className="hover:text-primary"><FaLinkedinIn /></a>
+            
           </div>
         </div>
 

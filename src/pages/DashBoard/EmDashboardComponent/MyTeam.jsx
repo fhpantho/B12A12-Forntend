@@ -3,12 +3,9 @@ import React, { useEffect, useState } from "react";
 import UseAxiosSecure from "../../../hooks/UseAxiosSecure";
 import UseAuth from "../../../hooks/UseAuth";
 import { toast } from "react-toastify";
+import LoaderSpinner from "../../../components/LoaderSpinner";
 
-const LoadingSpinner = () => (
-  <div className="flex justify-center items-center min-h-screen">
-    <span className="loading loading-spinner loading-lg"></span>
-  </div>
-);
+
 
 const MyTeam = () => {
   const axiosSecure = UseAxiosSecure();
@@ -72,7 +69,7 @@ const MyTeam = () => {
     fetchTeam();
   }, [selectedCompany, axiosSecure, dbUser?.email]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoaderSpinner></LoaderSpinner>
 
   if (!affiliations?.length) {
     return (

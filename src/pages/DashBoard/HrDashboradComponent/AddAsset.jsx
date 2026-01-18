@@ -27,6 +27,7 @@ const AddAsset = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false); // ✅ track image uploading
 
   const IMGBB_API_KEY = import.meta.env.VITE_imagehostapikey;
 
@@ -40,17 +41,23 @@ const AddAsset = () => {
 
   // Upload image to ImgBB
   const uploadToImgBB = async (file) => {
+    setUploadingImage(true); // ✅ start uploading
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
-      { method: 'POST', body: formData }
-    );
+    try {
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
+        { method: 'POST', body: formData }
+      );
 
-    if (!response.ok) throw new Error('Image upload failed');
-    const data = await response.json();
-    return data.data.url;
+      if (!response.ok) throw new Error('Image upload failed');
+
+      const data = await response.json();
+      return data.data.url;
+    } finally {
+      setUploadingImage(false); // ✅ stop uploading
+    }
   };
 
   // Handle form submission
@@ -64,8 +71,8 @@ const AddAsset = () => {
     }
 
     try {
-      const imageUrl = await uploadToImgBB(selectedFile);
-      const token = await user.getIdToken(true); // ✅ Get fresh Firebase token
+      const imageUrl = await uploadToImgBB(selectedFile); // ✅ wait for image first
+      const token = await user.getIdToken(true);
 
       const assetData = {
         productName: data.productName,
@@ -76,11 +83,8 @@ const AddAsset = () => {
         companyName: dbUser?.companyName,
       };
 
-      // ✅ Send token in standard Authorization header
       await axiosSecure.post('/assetcollection', assetData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success('Asset added successfully');
@@ -183,15 +187,20 @@ const AddAsset = () => {
               </div>
 
               {/* Server Error */}
-              {serverError && <div className="alert alert-error shadow-lg"><ExclamationTriangleIcon className="w-6 h-6" />{serverError}</div>}
+              {serverError && <div className="alert alert-error shadow-lg flex items-center gap-2"><ExclamationTriangleIcon className="w-6 h-6" />{serverError}</div>}
 
               {/* Success Message */}
               {success && <div className="alert alert-success shadow-lg">Asset added successfully!</div>}
 
               {/* Submit Button */}
               <div className="card-actions justify-end mt-8">
-                <button type="submit" disabled={isSubmitting || !selectedFile} className="btn btn-primary btn-wide text-lg">
-                  {isSubmitting ? <><span className="loading loading-spinner"></span> Adding Asset...</> : 'Add Asset'}
+                <button
+                  type="submit"
+                  disabled={isSubmitting || uploadingImage || !selectedFile} // ✅ disable while uploading image
+                  className="btn btn-primary btn-wide text-lg flex items-center justify-center gap-2"
+                >
+                  {(isSubmitting || uploadingImage) && <span className="loading loading-spinner"></span>}
+                  {isSubmitting ? 'Adding Asset...' : uploadingImage ? 'Uploading Image...' : 'Add Asset'}
                 </button>
               </div>
             </form>
